@@ -1,0 +1,9 @@
+.nyc_output/
+coverage/
+node_modules/
+
+test/config.*
+
+.tsbuildinfo
+*.js.map
+*.d.ts.map

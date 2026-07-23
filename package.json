@@ -1,0 +1,42 @@
+{
+  "name": "@cityssm/voterview-api",
+  "version": "0.1.0",
+  "description": "An unofficial wrapper around the VoterView Online Voter Services REST API",
+  "keywords": [
+    "voterview"
+  ],
+  "homepage": "https://github.com/cityssm/node-voterview-api#readme",
+  "bugs": {
+    "url": "https://github.com/cityssm/node-voterview-api/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cityssm/node-voterview-api.git"
+  },
+  "license": "MIT",
+  "author": "The Corporation of the City of Sault Ste. Marie",
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./debug": "./debug.config.js"
+  },
+  "files": [
+    "debug.config.*",
+    "index.*",
+    "types.*"
+  ],
+  "scripts": {
+    "test": "node --test \"test/test.ts\""
+  },
+  "dependencies": {
+    "@cityssm/mpac-tools": "^0.3.0",
+    "debug": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.13",
+    "@types/node": "^26.1.1",
+    "eslint-config-cityssm": "^42.0.0",
+    "prettier-config-cityssm": "^2.1.3"
+  }
+}
