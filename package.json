@@ -19,7 +19,8 @@
   "type": "module",
   "exports": {
     ".": "./index.js",
-    "./debug": "./debug.config.js"
+    "./debug": "./debug.config.js",
+    "./types": "./types.js"
   },
   "files": [
     "debug.config.*",

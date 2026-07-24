@@ -17,6 +17,12 @@ export class VoterViewApi {
             this.#requestHeaders['X-IVL-Training'] = 'true';
         }
     }
+    /**
+     * Find voting locations by street address.
+     * @param streetNumber - The street number of the address to search for.
+     * @param streetName - The street name of the address to search for.
+     * @returns A promise that resolves to an array of VotingLocation objects.
+     */
     async findVotingLocationsByStreetAddress(streetNumber, streetName) {
         return (await this.#sendRequest('find_voting_locations', 'get', {
             streetNumber,
@@ -36,10 +42,41 @@ export class VoterViewApi {
             nominationDateTo: nominationDateToString
         }));
     }
+    async getFrenchLanguageRightsCodes() {
+        return (await this.#sendRequest('french_rights', 'get'));
+    }
+    async getGenders() {
+        return (await this.#sendRequest('genders', 'get'));
+    }
+    async getOccupancyStatuses() {
+        return (await this.#sendRequest('occupancy_statuses', 'get'));
+    }
+    async getResidencyStatuses() {
+        return (await this.#sendRequest('residency_statuses', 'get'));
+    }
+    async getRomanCatholicReligionCodes() {
+        return (await this.#sendRequest('religions', 'get'));
+    }
+    async getSchoolSupportCodes() {
+        return (await this.#sendRequest('school_supports', 'get'));
+    }
     async getStreetAddresses(queryString) {
         return (await this.#sendRequest('street_addresses', 'get', {
             query: queryString
         }));
+    }
+    async getStreetNames(queryString) {
+        return (await this.#sendRequest('street_names', 'get', {
+            query: queryString
+        }));
+    }
+    async getStreetTypes(queryString) {
+        return (await this.#sendRequest('street_types', 'get', {
+            query: queryString
+        }));
+    }
+    async isDatabaseUnderMaintenance() {
+        return (await this.#sendRequest('check_maintenance', 'get'));
     }
     async #sendRequest(endpoint, method, parameters = {}) {
         debug(`Sending ${method.toUpperCase()} request to ${endpoint} with parameters:`, parameters);

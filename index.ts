@@ -4,8 +4,15 @@ import Debug from 'debug'
 import { DEBUG_NAMESPACE } from './debug.config.js'
 import type {
   CandidateList,
+  FrenchRightsCode,
+  Gender,
+  OccupancyStatus,
+  ReligionCode,
   RequestDateString,
+  ResidencyStatus,
+  SchoolSupportCode,
   StreetAddress,
+  StreetName,
   VotingLocation
 } from './types.js'
 
@@ -79,10 +86,62 @@ export class VoterViewApi {
     })) as CandidateList
   }
 
+  async getFrenchLanguageRightsCodes(): Promise<FrenchRightsCode[]> {
+    return (await this.#sendRequest(
+      'french_rights',
+      'get'
+    )) as FrenchRightsCode[]
+  }
+
+  async getGenders(): Promise<Gender[]> {
+    return (await this.#sendRequest('genders', 'get')) as Gender[]
+  }
+
+  async getOccupancyStatuses(): Promise<OccupancyStatus[]> {
+    return (await this.#sendRequest(
+      'occupancy_statuses',
+      'get'
+    )) as OccupancyStatus[]
+  }
+
+  async getResidencyStatuses(): Promise<ResidencyStatus[]> {
+    return (await this.#sendRequest(
+      'residency_statuses',
+      'get'
+    )) as ResidencyStatus[]
+  }
+
+  async getRomanCatholicReligionCodes(): Promise<ReligionCode[]> {
+    return (await this.#sendRequest('religions', 'get')) as ReligionCode[]
+  }
+
+  async getSchoolSupportCodes(): Promise<SchoolSupportCode[]> {
+    return (await this.#sendRequest(
+      'school_supports',
+      'get'
+    )) as SchoolSupportCode[]
+  }
+
   async getStreetAddresses(queryString: string): Promise<StreetAddress[]> {
     return (await this.#sendRequest('street_addresses', 'get', {
       query: queryString
     })) as StreetAddress[]
+  }
+
+  async getStreetNames(queryString: string): Promise<StreetName[]> {
+    return (await this.#sendRequest('street_names', 'get', {
+      query: queryString
+    })) as StreetName[]
+  }
+
+  async getStreetTypes(queryString: string): Promise<string[]> {
+    return (await this.#sendRequest('street_types', 'get', {
+      query: queryString
+    })) as string[]
+  }
+
+  async isDatabaseUnderMaintenance(): Promise<boolean> {
+    return (await this.#sendRequest('check_maintenance', 'get')) as boolean
   }
 
   async #sendRequest(
@@ -118,3 +177,17 @@ export class VoterViewApi {
     }
   }
 }
+
+export type {
+  CandidateList,
+  FrenchRightsCode,
+  Gender,
+  OccupancyStatus,
+  ReligionCode,
+  RequestDateString,
+  ResidencyStatus,
+  SchoolSupportCode,
+  StreetAddress,
+  StreetName,
+  VotingLocation
+} from './types.js'

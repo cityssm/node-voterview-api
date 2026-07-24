@@ -66,6 +66,14 @@ export interface StreetAddress {
   UnitNumber: string
 }
 
+export interface StreetName {
+  DisplayValue: string
+  Label: string
+
+  /** The individual components of the street name delimited by double pipes. */
+  Value: string
+}
+
 export interface VotingLocation {
   Address1: string
   Address2: string
@@ -213,4 +221,34 @@ export interface CandidateList {
     /** Undocumented */
     SchoolSupportCode: string
   }>
+}
+
+export interface Gender {
+  GenderCode: string
+  GenderDescription: string
+}
+
+export interface OccupancyStatus {
+  OccupancyStatusCode: string
+  OccupancyStatusDescription: string
+}
+
+export interface ResidencyStatus {
+  ResidencyStatusCode: string
+  ResidencyStatusDescription: string
+}
+
+export interface SchoolSupportCode {
+  SchoolSupportCode: string
+  SchoolSupportDescription: string
+}
+
+export interface ReligionCode {
+  ReligionCode: string
+  ReligionDescription: string
+}
+
+export interface FrenchRightsCode {
+  FrenchLanguageRightsCode: string
+  FrenchLanguageRightsDescription: string
 }
