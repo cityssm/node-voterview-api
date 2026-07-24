@@ -16,7 +16,7 @@ export const config = defineConfig(configPackage, {
             'warn',
             {
                 cspell: {
-                    words: [...cspellWords, 'colour', 'voterview']
+                    words: [...cspellWords, 'colour', 'licence', 'preo', 'voterview']
                 }
             }
         ],

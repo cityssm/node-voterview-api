@@ -1,33 +1,82 @@
+/* eslint-disable max-lines */
+import { NodeCache } from '@cacheable/node-cache';
 import { rollNumberMunicipalities } from '@cityssm/mpac-tools';
+import { secondsInOneHour, secondsToMillis } from '@cityssm/to-millis';
 import Debug from 'debug';
 import { DEBUG_NAMESPACE } from './debug.config.js';
 const debug = Debug(`${DEBUG_NAMESPACE}:index`);
 export class VoterViewApi {
+    get cacheExpirySeconds() {
+        return this.#cacheExpirySeconds;
+    }
+    set cacheExpirySeconds(value) {
+        if (value < 0) {
+            throw new Error('Cache expiry seconds must be a non-negative number');
+        }
+        this.#cacheExpirySeconds = value;
+    }
+    get useCache() {
+        return this.#useCache;
+    }
+    set useCache(value) {
+        this.#useCache = value;
+    }
     #baseUrl;
+    #cacheExpirySeconds = secondsInOneHour;
+    #candidateListCache = new NodeCache();
+    #frenchRightsCodesCache;
+    #frenchRightsCodesCacheExpiryTimestamp;
+    #gendersCache;
+    #gendersCacheExpiryTimestamp;
+    #occupancyStatusesCache;
+    #occupancyStatusesCacheExpiryTimestamp;
+    #religionCodesCache;
+    #religionCodesCacheExpiryTimestamp;
     #requestHeaders;
+    #residencyStatusesCache;
+    #residencyStatusesCacheExpiryTimestamp;
+    #schoolSupportCodesCache;
+    #schoolSupportCodesCacheExpiryTimestamp;
+    #streetAddressesCache = new NodeCache();
+    #streetNamesCache = new NodeCache();
+    #streetTypesCache = new NodeCache();
+    #useCache = true;
     constructor(countyMunicipalityCode, username, password, useTrainingDatabase = false) {
         if (!Object.keys(rollNumberMunicipalities).includes(countyMunicipalityCode)) {
             debug(`WARNING: County/municipality code not recognized: ${countyMunicipalityCode}`);
         }
         this.#baseUrl = `https://www.voterview.ca/mvvservices/rest/ivl/${countyMunicipalityCode}/`;
         this.#requestHeaders = {
+            // eslint-disable-next-line sonarjs/no-nested-template-literals
             Authorization: `Basic ${btoa(`${username}:${password}`)}`
         };
         if (useTrainingDatabase) {
             this.#requestHeaders['X-IVL-Training'] = 'true';
         }
     }
-    /**
-     * Find voting locations by street address.
-     * @param streetNumber - The street number of the address to search for.
-     * @param streetName - The street name of the address to search for.
-     * @returns A promise that resolves to an array of VotingLocation objects.
-     */
-    async findVotingLocationsByStreetAddress(streetNumber, streetName) {
-        return (await this.#sendRequest('find_voting_locations', 'get', {
-            streetNumber,
-            streetName
-        }));
+    clearCache() {
+        this.#candidateListCache.flushAll();
+        this.#streetAddressesCache.flushAll();
+        this.#streetNamesCache.flushAll();
+        this.#streetTypesCache.flushAll();
+        this.#frenchRightsCodesCache = undefined;
+        this.#frenchRightsCodesCacheExpiryTimestamp = undefined;
+        this.#gendersCache = undefined;
+        this.#gendersCacheExpiryTimestamp = undefined;
+        this.#occupancyStatusesCache = undefined;
+        this.#occupancyStatusesCacheExpiryTimestamp = undefined;
+        this.#religionCodesCache = undefined;
+        this.#religionCodesCacheExpiryTimestamp = undefined;
+        this.#residencyStatusesCache = undefined;
+        this.#residencyStatusesCacheExpiryTimestamp = undefined;
+        this.#schoolSupportCodesCache = undefined;
+        this.#schoolSupportCodesCacheExpiryTimestamp = undefined;
+    }
+    disableCache() {
+        this.#useCache = false;
+    }
+    enableCache() {
+        this.#useCache = true;
     }
     async getCandidateListByWard(ward, nominationDateFrom, nominationDateTo) {
         const nominationDateFromString = nominationDateFrom instanceof Date
@@ -36,54 +85,316 @@ export class VoterViewApi {
         const nominationDateToString = nominationDateTo instanceof Date
             ? `${nominationDateTo.getFullYear()}/${nominationDateTo.getMonth() + 1}/${nominationDateTo.getDate()}`
             : (nominationDateTo ?? `${new Date().getFullYear()}/12/31`);
-        return (await this.#sendRequest('candidate_list', 'get', {
+        const cacheKey = `${ward}-${nominationDateFromString}-${nominationDateToString}`;
+        if (this.useCache) {
+            const cachedCandidateList = this.#candidateListCache.get(cacheKey);
+            if (cachedCandidateList !== undefined) {
+                debug(`Returning cached candidate list for ${cacheKey}`);
+                return cachedCandidateList;
+            }
+        }
+        const candidateList = (await this.#sendRequest('candidate_list', 'get', {
             ward,
             nominationDateFrom: nominationDateFromString,
             nominationDateTo: nominationDateToString
         }));
+        if (this.useCache) {
+            debug(`Caching candidate list for ${cacheKey}`);
+            this.#candidateListCache.set(cacheKey, candidateList, this.cacheExpirySeconds);
+        }
+        return candidateList;
     }
     async getFrenchLanguageRightsCodes() {
-        return (await this.#sendRequest('french_rights', 'get'));
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#frenchRightsCodesCache !== undefined &&
+                this.#frenchRightsCodesCacheExpiryTimestamp !== undefined &&
+                now < this.#frenchRightsCodesCacheExpiryTimestamp) {
+                debug('Returning cached French language rights codes');
+                return this.#frenchRightsCodesCache;
+            }
+        }
+        const frenchRightsCodes = (await this.#sendRequest('french_rights', 'get'));
+        if (this.useCache) {
+            debug('Caching French language rights codes');
+            this.#frenchRightsCodesCache = frenchRightsCodes;
+            this.#frenchRightsCodesCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return frenchRightsCodes;
     }
     async getGenders() {
-        return (await this.#sendRequest('genders', 'get'));
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#gendersCache !== undefined &&
+                this.#gendersCacheExpiryTimestamp !== undefined &&
+                now < this.#gendersCacheExpiryTimestamp) {
+                debug('Returning cached genders');
+                return this.#gendersCache;
+            }
+        }
+        const genders = (await this.#sendRequest('genders', 'get'));
+        if (this.useCache) {
+            debug('Caching genders');
+            this.#gendersCache = genders;
+            this.#gendersCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return genders;
     }
     async getOccupancyStatuses() {
-        return (await this.#sendRequest('occupancy_statuses', 'get'));
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#occupancyStatusesCache !== undefined &&
+                this.#occupancyStatusesCacheExpiryTimestamp !== undefined &&
+                now < this.#occupancyStatusesCacheExpiryTimestamp) {
+                debug('Returning cached occupancy statuses');
+                return this.#occupancyStatusesCache;
+            }
+        }
+        const occupancyStatuses = (await this.#sendRequest('occupancy_statuses', 'get'));
+        if (this.useCache) {
+            debug('Caching occupancy statuses');
+            this.#occupancyStatusesCache = occupancyStatuses;
+            this.#occupancyStatusesCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return occupancyStatuses;
     }
     async getResidencyStatuses() {
-        return (await this.#sendRequest('residency_statuses', 'get'));
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#residencyStatusesCache !== undefined &&
+                this.#residencyStatusesCacheExpiryTimestamp !== undefined &&
+                now < this.#residencyStatusesCacheExpiryTimestamp) {
+                debug('Returning cached residency statuses');
+                return this.#residencyStatusesCache;
+            }
+        }
+        const residencyStatuses = (await this.#sendRequest('residency_statuses', 'get'));
+        if (this.useCache) {
+            debug('Caching residency statuses');
+            this.#residencyStatusesCache = residencyStatuses;
+            this.#residencyStatusesCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return residencyStatuses;
     }
     async getRomanCatholicReligionCodes() {
-        return (await this.#sendRequest('religions', 'get'));
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#religionCodesCache !== undefined &&
+                this.#religionCodesCacheExpiryTimestamp !== undefined &&
+                now < this.#religionCodesCacheExpiryTimestamp) {
+                debug('Returning cached Roman Catholic religion codes');
+                return this.#religionCodesCache;
+            }
+        }
+        const religionCodes = (await this.#sendRequest('religions', 'get'));
+        if (this.useCache) {
+            debug('Caching Roman Catholic religion codes');
+            this.#religionCodesCache = religionCodes;
+            this.#religionCodesCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return religionCodes;
     }
     async getSchoolSupportCodes() {
-        return (await this.#sendRequest('school_supports', 'get'));
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#schoolSupportCodesCache !== undefined &&
+                this.#schoolSupportCodesCacheExpiryTimestamp !== undefined &&
+                now < this.#schoolSupportCodesCacheExpiryTimestamp) {
+                debug('Returning cached school support codes');
+                return this.#schoolSupportCodesCache;
+            }
+        }
+        const schoolSupportCodes = (await this.#sendRequest('school_supports', 'get'));
+        if (this.useCache) {
+            debug('Caching school support codes');
+            this.#schoolSupportCodesCache = schoolSupportCodes;
+            this.#schoolSupportCodesCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return schoolSupportCodes;
     }
     async getStreetAddresses(queryString) {
-        return (await this.#sendRequest('street_addresses', 'get', {
+        const cacheKey = queryString.toLowerCase();
+        if (this.useCache) {
+            const cachedStreetAddresses = this.#streetAddressesCache.get(cacheKey);
+            if (cachedStreetAddresses !== undefined) {
+                debug(`Returning cached street addresses for ${cacheKey}`);
+                return cachedStreetAddresses;
+            }
+        }
+        const streetAddresses = (await this.#sendRequest('street_addresses', 'get', {
             query: queryString
         }));
+        if (this.useCache) {
+            debug(`Caching street addresses for ${cacheKey}`);
+            this.#streetAddressesCache.set(cacheKey, streetAddresses, this.cacheExpirySeconds);
+        }
+        return streetAddresses;
     }
     async getStreetNames(queryString) {
-        return (await this.#sendRequest('street_names', 'get', {
+        const cacheKey = queryString.toLowerCase();
+        if (this.useCache) {
+            const cachedStreetNames = this.#streetNamesCache.get(cacheKey);
+            if (cachedStreetNames !== undefined) {
+                debug(`Returning cached street names for ${cacheKey}`);
+                return cachedStreetNames;
+            }
+        }
+        const streetNames = (await this.#sendRequest('street_names', 'get', {
             query: queryString
         }));
+        if (this.useCache) {
+            debug(`Caching street names for ${cacheKey}`);
+            this.#streetNamesCache.set(cacheKey, streetNames, this.cacheExpirySeconds);
+        }
+        return streetNames;
     }
     async getStreetTypes(queryString) {
-        return (await this.#sendRequest('street_types', 'get', {
+        const cacheKey = queryString.toLowerCase();
+        if (this.useCache) {
+            const cachedStreetTypes = this.#streetTypesCache.get(cacheKey);
+            if (cachedStreetTypes !== undefined) {
+                debug(`Returning cached street types for ${cacheKey}`);
+                return cachedStreetTypes;
+            }
+        }
+        const streetTypes = (await this.#sendRequest('street_types', 'get', {
             query: queryString
+        }));
+        if (this.useCache) {
+            debug(`Caching street types for ${cacheKey}`);
+            this.#streetTypesCache.set(cacheKey, streetTypes, this.cacheExpirySeconds);
+        }
+        return streetTypes;
+    }
+    async getVotersListRecord(request) {
+        const formattedRequest = {
+            FirstName: request.FirstName,
+            LastName: request.LastName,
+            Day: request.BirthDay.toString().padStart(2, '0'),
+            Month: request.BirthMonth.toString().padStart(2, '0'),
+            Year: request.BirthYear.toString()
+        };
+        if ('Address' in request) {
+            formattedRequest.Address = request.Address;
+        }
+        else {
+            formattedRequest.StreetNumber = request.StreetNumber.toString();
+            if (request.StreetNumberSuffix !== undefined) {
+                formattedRequest.StreetNumberSuffix = request.StreetNumberSuffix;
+            }
+            formattedRequest.StreetName = request.StreetName;
+            formattedRequest.StreetType = request.StreetType;
+            if (request.StreetDirection !== undefined) {
+                formattedRequest.StreetDirection = request.StreetDirection;
+            }
+            if (request.UnitNumber !== undefined) {
+                formattedRequest.UnitNumber = request.UnitNumber.toString();
+            }
+        }
+        return (await this.#sendRequest('on_voters_list', 'get', formattedRequest));
+    }
+    /**
+     * Get voting locations by street address.
+     * @param streetNumber - The street number of the address to search for.
+     * @param streetName - The street name of the address to search for.
+     * @returns A promise that resolves to an array of VotingLocation objects.
+     */
+    async getVotingLocationsByStreetAddress(streetNumber, streetName) {
+        return (await this.#sendRequest('find_voting_locations', 'get', {
+            streetNumber,
+            streetName
         }));
     }
     async isDatabaseUnderMaintenance() {
         return (await this.#sendRequest('check_maintenance', 'get'));
+    }
+    isTrainingDatabase() {
+        return this.#requestHeaders['X-IVL-Training'] === 'true';
+    }
+    /**
+     * Submits a voters list registration request to the VoterView API.
+     * @param request - The voters list registration request object containing the necessary information.
+     * @throws {Error} Will throw an error if validation fails
+     * @returns A promise that resolves to the response from the VoterView API.
+     */
+    async submitVotersListRegistration(request) {
+        const formattedRequest = {
+            FirstName: request.FirstName,
+            LastName: request.LastName,
+            MiddleName: request.MiddleName,
+            Day: request.BirthDay.toString().padStart(2, '0'),
+            Month: request.BirthMonth.toString().padStart(2, '0'),
+            Year: request.BirthYear.toString(),
+            Email: request.Email,
+            Telephone: request.Telephone,
+            Gender: request.Gender,
+            SchoolSupport: request.SchoolSupport,
+            Citizenship: request.Citizenship,
+            OccupancyStatus: request.OccupancyStatus,
+            Religion: request.Religion,
+            ResidencyStatus: request.ResidencyStatus,
+            FrenchLanguageRights: request.FrenchLanguageRights,
+            MailingAddress1: request.MailingAddress1,
+            StreetNumber: request.StreetNumber.toString(),
+            StreetName: request.StreetName,
+            CertifyAccuracy: true
+        };
+        switch (request.PreferredContactMethod) {
+            case 'Email': {
+                formattedRequest.PreferredContactMethod = '0';
+                break;
+            }
+            case 'Mail': {
+                formattedRequest.PreferredContactMethod = '1';
+                break;
+            }
+            case 'Phone': {
+                formattedRequest.PreferredContactMethod = '2';
+                break;
+            }
+        }
+        for (const key of [
+            'DriverLicenceNumber',
+            'SIN',
+            'MailingAddress2',
+            'MailingAddress3',
+            'MailingCity',
+            'MailingProvince',
+            'MailingPostalCode',
+            'MailingCountry',
+            'StreetNumberSuffix',
+            'StreetType',
+            'StreetDirection',
+            'UnitNumber',
+            'UnitType',
+            'IPAddress',
+            'UploadIDContent',
+            'UploadIDFileName',
+            'UploadID2Content',
+            'UploadID2FileName',
+            'UploadID3Content'
+        ]) {
+            const value = request[key];
+            if (value !== undefined) {
+                formattedRequest[key] = value;
+            }
+        }
+        // TODO: Validate the request object before sending it to the API.
+        // return await this.#sendRequest('register', 'post', formattedRequest)
+        return false;
     }
     async #sendRequest(endpoint, method, parameters = {}) {
         debug(`Sending ${method.toUpperCase()} request to ${endpoint} with parameters:`, parameters);
         const url = new URL(`${this.#baseUrl}${endpoint}`);
         if (method === 'get') {
             for (const [key, value] of Object.entries(parameters)) {
-                url.searchParams.append(key, value);
+                url.searchParams.append(key, value.toString());
             }
             return await fetch(url.toString(), {
                 headers: this.#requestHeaders
@@ -94,9 +405,9 @@ export class VoterViewApi {
                 method: 'POST',
                 headers: {
                     ...this.#requestHeaders,
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/json'
                 },
-                body: new URLSearchParams(parameters).toString()
+                body: JSON.stringify(parameters)
             }).then(async (response) => (await response.json()));
         }
     }

@@ -252,3 +252,158 @@ export interface FrenchRightsCode {
   FrenchLanguageRightsCode: string
   FrenchLanguageRightsDescription: string
 }
+
+export type GetVotersListRecordRequest = (
+  | { Address: string }
+  | {
+      StreetNumber: string | number
+      StreetNumberSuffix?: string
+
+      StreetName: string
+      StreetType: string
+      StreetDirection?: string
+
+      UnitNumber?: string | number
+    }
+) & {
+  FirstName: string
+  LastName: string
+
+  BirthDay: number | string
+  BirthMonth: number | string
+  BirthYear: number | string
+}
+
+interface VotersListRecordFound {
+  VoterID: number
+  VoterUniqueID: string
+
+  FullName: string
+
+  FirstName: string
+  LastName: string
+  MiddleName: string
+
+  /** YYYY-MM-DD */
+  DateOfBirth: `${number}-${number}-${number}`
+
+  SIN: string
+
+  FrenchLanguageRights: string
+  Gender: string
+  OccupancyStatus: string
+  Religion: string
+  ResidencyStatus: string
+
+  SchoolSupport: string
+  SchoolSupportDescription: string
+
+  PreferEmailForContact: string | null
+  Email: string | null
+  PhoneNumber: string
+
+  PropertyID: number
+  PropertyAddress: string
+  PropertyUniqueID: string
+
+  Ward: string
+  WardName: string
+
+  Poll: string
+
+  /** Mailing Address Line 1 */
+  Address1: string
+
+  /** Mailing Address Line 2 */
+  Address2: string
+
+  /** Mailing Address Line 3 */
+  Address3: string
+
+  /** Mailing Address City */
+  City: string
+
+  /** Mailing Address Province */
+  Province: string
+
+  /** Mailing Address Postal Code */
+  PostalCode: string
+
+  /** Mailing Address Country */
+  Country: string
+
+  /** Undocumented */
+  IsVoteOnline: boolean
+
+  /** Undocumented */
+  OptOutPREO: unknown
+
+  /** Undocumented */
+  RequestReason: unknown
+
+  /** Undocumented */
+  RequestReasonDescription: unknown
+}
+
+export type VotersListRecord =
+  | (VotersListRecordFound & {
+      Found: true
+    })
+  | (Record<keyof VotersListRecordFound, null> & { Found: false })
+
+
+export interface VotersListRegistrationRequest {
+  FirstName: string
+  LastName: string
+  MiddleName: string
+
+  BirthDay: number | string
+  BirthMonth: number | string
+  BirthYear: number | string
+
+  Email: string
+  Telephone: string
+
+  Gender: string
+  SchoolSupport: string
+  Citizenship: 'N' | 'Y'
+  OccupancyStatus: string
+  Religion: string
+  ResidencyStatus: string
+  FrenchLanguageRights: string
+
+  DriverLicenceNumber?: string
+  SIN?: string
+
+  MailingAddress1: string
+  MailingAddress2?: string
+  MailingAddress3?: string
+  MailingCity?: string
+  MailingProvince?: string
+  MailingPostalCode?: string
+  MailingCountry?: string
+
+  StreetNumber: string | number
+  StreetNumberSuffix?: string
+  StreetName: string
+  StreetType?: string
+  StreetDirection?: string
+
+  UnitNumber?: string
+  UnitType?: string
+
+  IPAddress?: string
+
+  UploadIDContent?: string
+  UploadIDFileName?: string
+
+  UploadID2Content?: string
+  UploadID2FileName?: string
+
+  UploadID3Content?: string
+  UploadID3FileName?: string
+
+  PreferredContactMethod: 'Email' | 'Phone' | 'Mail'
+
+  NotifyWhenProcessed?: boolean
+}
