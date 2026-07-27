@@ -284,12 +284,19 @@ interface VotersListRecordFound {
     /** Undocumented */
     RequestReasonDescription: unknown;
 }
-export type VotersListRecord = (VotersListRecordFound & {
+export type VotersListFoundRecord = VotersListRecordFound & {
     Found: true;
-}) | (Record<keyof VotersListRecordFound, null> & {
+};
+export type VotersListNotFoundRecord = Record<keyof VotersListRecordFound, null> & {
     Found: false;
-});
-export interface VotersListRegistrationRequest {
+};
+export type VotersListRecord = VotersListFoundRecord | VotersListNotFoundRecord;
+export declare const preferEmailForContactMap: {
+    readonly Email: 0;
+    readonly Mail: 1;
+    readonly Phone: 2;
+};
+interface RegistrationRequest {
     FirstName: string;
     LastName: string;
     MiddleName: string;
@@ -305,7 +312,7 @@ export interface VotersListRegistrationRequest {
     Religion: string;
     ResidencyStatus: string;
     FrenchLanguageRights: string;
-    DriverLicenceNumber?: string;
+    DriversLicenceNumber?: string;
     SIN?: string;
     MailingAddress1: string;
     MailingAddress2?: string;
@@ -328,7 +335,35 @@ export interface VotersListRegistrationRequest {
     UploadID2FileName?: string;
     UploadID3Content?: string;
     UploadID3FileName?: string;
-    PreferredContactMethod: 'Email' | 'Phone' | 'Mail';
+    PreferredContactMethod: keyof typeof preferEmailForContactMap;
     NotifyWhenProcessed?: boolean;
+}
+export type VotersListRegistrationRequest = RegistrationRequest;
+export type VotersListUpdateRequest = RegistrationRequest & {
+    VoterID: number | string;
+    PropertyID: number | string;
+    AbsenteeAddress1?: string;
+    AbsenteeAddress2?: string;
+    AbsenteeAddress3?: string;
+    AbsenteeCity?: string;
+    AbsenteeProvince?: string;
+    AbsenteePostalCode?: string;
+    AbsenteeCountry?: string;
+    PickUpBallot?: boolean;
+    PickUpBallotName?: string;
+};
+export interface VoteByMailStatus {
+    IsFound: boolean;
+    Submitted: boolean;
+    SubmittedDate: ResponseDateJsonString | null;
+    Approved: boolean;
+    ApprovedDate: ResponseDateJsonString | null;
+    Declined: boolean;
+    DeclinedDate: ResponseDateJsonString | null;
+    Mailed: boolean;
+    MailedDate: ResponseDateJsonString | null;
+    Received: boolean;
+    ReceivedDate: ResponseDateJsonString | null;
+    RegistrationOnly: boolean;
 }
 export {};

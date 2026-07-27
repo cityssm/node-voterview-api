@@ -345,14 +345,26 @@ interface VotersListRecordFound {
   RequestReasonDescription: unknown
 }
 
-export type VotersListRecord =
-  | (VotersListRecordFound & {
-      Found: true
-    })
-  | (Record<keyof VotersListRecordFound, null> & { Found: false })
+export type VotersListFoundRecord = VotersListRecordFound & {
+  Found: true
+}
 
+export type VotersListNotFoundRecord = Record<
+  keyof VotersListRecordFound,
+  null
+> & {
+  Found: false
+}
 
-export interface VotersListRegistrationRequest {
+export type VotersListRecord = VotersListFoundRecord | VotersListNotFoundRecord
+
+export const preferEmailForContactMap = {
+  Email: 0,
+  Mail: 1,
+  Phone: 2
+} as const
+
+interface RegistrationRequest {
   FirstName: string
   LastName: string
   MiddleName: string
@@ -372,7 +384,7 @@ export interface VotersListRegistrationRequest {
   ResidencyStatus: string
   FrenchLanguageRights: string
 
-  DriverLicenceNumber?: string
+  DriversLicenceNumber?: string
   SIN?: string
 
   MailingAddress1: string
@@ -403,7 +415,46 @@ export interface VotersListRegistrationRequest {
   UploadID3Content?: string
   UploadID3FileName?: string
 
-  PreferredContactMethod: 'Email' | 'Phone' | 'Mail'
+  PreferredContactMethod: keyof typeof preferEmailForContactMap
 
   NotifyWhenProcessed?: boolean
+}
+
+export type VotersListRegistrationRequest = RegistrationRequest
+
+export type VotersListUpdateRequest = RegistrationRequest & {
+  VoterID: number | string
+  PropertyID: number | string
+
+  AbsenteeAddress1?: string
+  AbsenteeAddress2?: string
+  AbsenteeAddress3?: string
+  AbsenteeCity?: string
+  AbsenteeProvince?: string
+  AbsenteePostalCode?: string
+  AbsenteeCountry?: string
+
+  PickUpBallot?: boolean
+  PickUpBallotName?: string
+}
+
+export interface VoteByMailStatus {
+  IsFound: boolean
+
+  Submitted: boolean
+  SubmittedDate: ResponseDateJsonString | null
+
+  Approved: boolean
+  ApprovedDate: ResponseDateJsonString | null
+
+  Declined: boolean
+  DeclinedDate: ResponseDateJsonString | null
+
+  Mailed: boolean
+  MailedDate: ResponseDateJsonString | null
+
+  Received: boolean
+  ReceivedDate: ResponseDateJsonString | null
+
+  RegistrationOnly: boolean
 }

@@ -18,6 +18,7 @@ import type {
   SchoolSupportCode,
   StreetAddress,
   StreetName,
+  VoteByMailStatus,
   VotersListRecord,
   VotersListRegistrationRequest,
   VotingLocation
@@ -46,8 +47,10 @@ export class VoterViewApi {
     this.#useCache = value
   }
 
-  readonly #baseUrl: string
+  #allStreetNamesCache: StreetName[] | undefined
+  #allStreetNamesCacheExpiryTimestamp: number | undefined
 
+  readonly #baseUrl: string
   #cacheExpirySeconds = secondsInOneHour
 
   readonly #candidateListCache = new NodeCache<CandidateList>()
@@ -135,6 +138,88 @@ export class VoterViewApi {
 
   enableCache(): void {
     this.#useCache = true
+  }
+
+  async getAllStreetNames(): Promise<StreetName[]> {
+    if (this.useCache) {
+      const now = Date.now()
+
+      if (
+        this.#allStreetNamesCache !== undefined &&
+        this.#allStreetNamesCacheExpiryTimestamp !== undefined &&
+        now < this.#allStreetNamesCacheExpiryTimestamp
+      ) {
+        debug('Returning cached street names')
+
+        return this.#allStreetNamesCache
+      }
+    }
+
+    const streetNameQueryReturnMax = 20
+    const maxPrefixDepth = 5
+
+    // eslint-disable-next-line no-secrets/no-secrets
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+    const allStreetNames: StreetName[] = []
+    const seenStreetNames = new Set<string>()
+
+    const addStreetNames = (streetNames: StreetName[]): void => {
+      for (const streetName of streetNames) {
+        if (!seenStreetNames.has(streetName.Value)) {
+          seenStreetNames.add(streetName.Value)
+          allStreetNames.push(streetName)
+        }
+      }
+    }
+
+    const getStreetNamesRecursive = async (
+      streetPrefix: string,
+      depth: number
+    ): Promise<void> => {
+      const streetNames = await this.getStreetNames(streetPrefix)
+
+      // debug(`Found ${streetNames.length} street names starting with ${streetPrefix}`)
+
+      addStreetNames(streetNames)
+
+      if (streetNames.length < streetNameQueryReturnMax) {
+        return
+      }
+
+      if (depth >= maxPrefixDepth) {
+        debug(
+          `WARNING: Street names starting with ${streetPrefix} may be incomplete`
+        )
+        return
+      }
+
+      const nextLetterFloor =
+        streetNames.at(-1)?.Value.charAt(streetPrefix.length).toUpperCase() ??
+        ''
+
+      for (const nextLetter of alphabet) {
+        if (nextLetterFloor !== '' && nextLetter < nextLetterFloor) {
+          continue
+        }
+
+        await getStreetNamesRecursive(streetPrefix + nextLetter, depth + 1)
+      }
+    }
+
+    for (const letter of alphabet) {
+      await getStreetNamesRecursive(letter, 1)
+    }
+
+    if (this.useCache) {
+      debug('Caching street names')
+
+      this.#allStreetNamesCache = allStreetNames
+      this.#allStreetNamesCacheExpiryTimestamp =
+        Date.now() + secondsToMillis(this.cacheExpirySeconds)
+    }
+
+    return allStreetNames
   }
 
   async getCandidateListByWard(
@@ -367,6 +452,12 @@ export class VoterViewApi {
     return schoolSupportCodes
   }
 
+  /**
+   * Get street addresses starting with the given civic address search string.
+   * Matches up to 30 street addresses for the given civic address search string.
+   * @param queryString - The civic address search string.
+   * @returns An array of street addresses matching the civic address search string.
+   */
   async getStreetAddresses(queryString: string): Promise<StreetAddress[]> {
     const cacheKey = queryString.toLowerCase()
 
@@ -453,6 +544,16 @@ export class VoterViewApi {
     return streetTypes
   }
 
+  async getVoteByMailStatus(
+    confirmationCode: string,
+    lastName: string
+  ): Promise<VoteByMailStatus> {
+    return (await this.#sendRequest('status', 'get', {
+      ConfirmationCode: confirmationCode,
+      LastName: lastName
+    })) as VoteByMailStatus
+  }
+
   async getVotersListRecord(
     request: GetVotersListRecordRequest
   ): Promise<VotersListRecord> {
@@ -525,8 +626,14 @@ export class VoterViewApi {
    */
   async submitVotersListRegistration(
     request: VotersListRegistrationRequest
-  ): Promise<unknown> {
-    const formattedRequest: Record<string, string | boolean> = {
+  ): Promise<
+    | string
+    | {
+        ErrorCode: string
+        ErrorDescription: string
+      }
+  > {
+    const formattedRequest: Record<string, string | number | boolean> = {
       FirstName: request.FirstName,
       LastName: request.LastName,
       MiddleName: request.MiddleName,
@@ -538,20 +645,23 @@ export class VoterViewApi {
       Email: request.Email,
       Telephone: request.Telephone,
 
-      Gender: request.Gender,
-      SchoolSupport: request.SchoolSupport,
       Citizenship: request.Citizenship,
+      FrenchLanguageRights: request.FrenchLanguageRights,
+      Gender: request.Gender,
       OccupancyStatus: request.OccupancyStatus,
       Religion: request.Religion,
       ResidencyStatus: request.ResidencyStatus,
-      FrenchLanguageRights: request.FrenchLanguageRights,
+      SchoolSupport: request.SchoolSupport,
 
       MailingAddress1: request.MailingAddress1,
 
+      AddressType: 'C',
       StreetNumber: request.StreetNumber.toString(),
       StreetName: request.StreetName,
 
-      CertifyAccuracy: true
+      CertifyAccuracy: true,
+
+      AbsenteeVoteType: 0 // Must be '0' for voters list registration requests
     }
 
     switch (request.PreferredContactMethod) {
@@ -572,7 +682,7 @@ export class VoterViewApi {
     }
 
     for (const key of [
-      'DriverLicenceNumber',
+      'DriversLicenceNumber',
       'SIN',
       'MailingAddress2',
       'MailingAddress3',
@@ -601,15 +711,22 @@ export class VoterViewApi {
 
     // TODO: Validate the request object before sending it to the API.
 
-    // return await this.#sendRequest('register', 'post', formattedRequest)
-
-    return false
+    try {
+      return (await this.#sendRequest(
+        'register',
+        'post',
+        formattedRequest
+      )) as string
+    } catch (error) {
+      debug('Failed to register voter:', error)
+      throw error
+    }
   }
 
   async #sendRequest(
     endpoint: string,
     method: 'get' | 'post',
-    parameters: Record<string, string | boolean> = {}
+    parameters: Record<string, string | number | boolean> = {}
   ): Promise<unknown> {
     debug(
       `Sending ${method.toUpperCase()} request to ${endpoint} with parameters:`,

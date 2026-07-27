@@ -21,6 +21,8 @@ export class VoterViewApi {
     set useCache(value) {
         this.#useCache = value;
     }
+    #allStreetNamesCache;
+    #allStreetNamesCacheExpiryTimestamp;
     #baseUrl;
     #cacheExpirySeconds = secondsInOneHour;
     #candidateListCache = new NodeCache();
@@ -77,6 +79,61 @@ export class VoterViewApi {
     }
     enableCache() {
         this.#useCache = true;
+    }
+    async getAllStreetNames() {
+        if (this.useCache) {
+            const now = Date.now();
+            if (this.#allStreetNamesCache !== undefined &&
+                this.#allStreetNamesCacheExpiryTimestamp !== undefined &&
+                now < this.#allStreetNamesCacheExpiryTimestamp) {
+                debug('Returning cached street names');
+                return this.#allStreetNamesCache;
+            }
+        }
+        const streetNameQueryReturnMax = 20;
+        const maxPrefixDepth = 5;
+        // eslint-disable-next-line no-secrets/no-secrets
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const allStreetNames = [];
+        const seenStreetNames = new Set();
+        const addStreetNames = (streetNames) => {
+            for (const streetName of streetNames) {
+                if (!seenStreetNames.has(streetName.Value)) {
+                    seenStreetNames.add(streetName.Value);
+                    allStreetNames.push(streetName);
+                }
+            }
+        };
+        const getStreetNamesRecursive = async (streetPrefix, depth) => {
+            const streetNames = await this.getStreetNames(streetPrefix);
+            // debug(`Found ${streetNames.length} street names starting with ${streetPrefix}`)
+            addStreetNames(streetNames);
+            if (streetNames.length < streetNameQueryReturnMax) {
+                return;
+            }
+            if (depth >= maxPrefixDepth) {
+                debug(`WARNING: Street names starting with ${streetPrefix} may be incomplete`);
+                return;
+            }
+            const nextLetterFloor = streetNames.at(-1)?.Value.charAt(streetPrefix.length).toUpperCase() ??
+                '';
+            for (const nextLetter of alphabet) {
+                if (nextLetterFloor !== '' && nextLetter < nextLetterFloor) {
+                    continue;
+                }
+                await getStreetNamesRecursive(streetPrefix + nextLetter, depth + 1);
+            }
+        };
+        for (const letter of alphabet) {
+            await getStreetNamesRecursive(letter, 1);
+        }
+        if (this.useCache) {
+            debug('Caching street names');
+            this.#allStreetNamesCache = allStreetNames;
+            this.#allStreetNamesCacheExpiryTimestamp =
+                Date.now() + secondsToMillis(this.cacheExpirySeconds);
+        }
+        return allStreetNames;
     }
     async getCandidateListByWard(ward, nominationDateFrom, nominationDateTo) {
         const nominationDateFromString = nominationDateFrom instanceof Date
@@ -218,6 +275,12 @@ export class VoterViewApi {
         }
         return schoolSupportCodes;
     }
+    /**
+     * Get street addresses starting with the given civic address search string.
+     * Matches up to 30 street addresses for the given civic address search string.
+     * @param queryString - The civic address search string.
+     * @returns An array of street addresses matching the civic address search string.
+     */
     async getStreetAddresses(queryString) {
         const cacheKey = queryString.toLowerCase();
         if (this.useCache) {
@@ -271,6 +334,12 @@ export class VoterViewApi {
             this.#streetTypesCache.set(cacheKey, streetTypes, this.cacheExpirySeconds);
         }
         return streetTypes;
+    }
+    async getVoteByMailStatus(confirmationCode, lastName) {
+        return (await this.#sendRequest('status', 'get', {
+            ConfirmationCode: confirmationCode,
+            LastName: lastName
+        }));
     }
     async getVotersListRecord(request) {
         const formattedRequest = {
@@ -333,17 +402,19 @@ export class VoterViewApi {
             Year: request.BirthYear.toString(),
             Email: request.Email,
             Telephone: request.Telephone,
-            Gender: request.Gender,
-            SchoolSupport: request.SchoolSupport,
             Citizenship: request.Citizenship,
+            FrenchLanguageRights: request.FrenchLanguageRights,
+            Gender: request.Gender,
             OccupancyStatus: request.OccupancyStatus,
             Religion: request.Religion,
             ResidencyStatus: request.ResidencyStatus,
-            FrenchLanguageRights: request.FrenchLanguageRights,
+            SchoolSupport: request.SchoolSupport,
             MailingAddress1: request.MailingAddress1,
+            AddressType: 'C',
             StreetNumber: request.StreetNumber.toString(),
             StreetName: request.StreetName,
-            CertifyAccuracy: true
+            CertifyAccuracy: true,
+            AbsenteeVoteType: 0 // Must be '0' for voters list registration requests
         };
         switch (request.PreferredContactMethod) {
             case 'Email': {
@@ -360,7 +431,7 @@ export class VoterViewApi {
             }
         }
         for (const key of [
-            'DriverLicenceNumber',
+            'DriversLicenceNumber',
             'SIN',
             'MailingAddress2',
             'MailingAddress3',
@@ -386,8 +457,13 @@ export class VoterViewApi {
             }
         }
         // TODO: Validate the request object before sending it to the API.
-        // return await this.#sendRequest('register', 'post', formattedRequest)
-        return false;
+        try {
+            return (await this.#sendRequest('register', 'post', formattedRequest));
+        }
+        catch (error) {
+            debug('Failed to register voter:', error);
+            throw error;
+        }
     }
     async #sendRequest(endpoint, method, parameters = {}) {
         debug(`Sending ${method.toUpperCase()} request to ${endpoint} with parameters:`, parameters);
