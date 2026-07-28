@@ -24,7 +24,7 @@ export class VoterViewApi {
     #allStreetNamesCache;
     #allStreetNamesCacheExpiryTimestamp;
     #baseUrl;
-    #cacheExpirySeconds = secondsInOneHour;
+    #cacheExpirySeconds = secondsInOneHour * 2;
     #candidateListCache = new NodeCache();
     #frenchRightsCodesCache;
     #frenchRightsCodesCacheExpiryTimestamp;
@@ -121,10 +121,12 @@ export class VoterViewApi {
                 if (nextLetterFloor !== '' && nextLetter < nextLetterFloor) {
                     continue;
                 }
+                // eslint-disable-next-line no-await-in-loop
                 await getStreetNamesRecursive(streetPrefix + nextLetter, depth + 1);
             }
         };
         for (const letter of alphabet) {
+            // eslint-disable-next-line no-await-in-loop
             await getStreetNamesRecursive(letter, 1);
         }
         if (this.useCache) {
@@ -411,8 +413,8 @@ export class VoterViewApi {
             SchoolSupport: request.SchoolSupport,
             MailingAddress1: request.MailingAddress1,
             AddressType: 'C',
-            StreetNumber: request.StreetNumber.toString(),
             StreetName: request.StreetName,
+            StreetNumber: request.StreetNumber.toString(),
             CertifyAccuracy: true,
             AbsenteeVoteType: 0 // Must be '0' for voters list registration requests
         };
@@ -488,3 +490,4 @@ export class VoterViewApi {
         }
     }
 }
+export { streetNamesToStringArray } from './helpers.js';

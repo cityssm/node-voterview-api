@@ -51,7 +51,7 @@ export class VoterViewApi {
   #allStreetNamesCacheExpiryTimestamp: number | undefined
 
   readonly #baseUrl: string
-  #cacheExpirySeconds = secondsInOneHour
+  #cacheExpirySeconds = secondsInOneHour * 2
 
   readonly #candidateListCache = new NodeCache<CandidateList>()
 
@@ -203,11 +203,13 @@ export class VoterViewApi {
           continue
         }
 
+        // eslint-disable-next-line no-await-in-loop
         await getStreetNamesRecursive(streetPrefix + nextLetter, depth + 1)
       }
     }
 
     for (const letter of alphabet) {
+      // eslint-disable-next-line no-await-in-loop
       await getStreetNamesRecursive(letter, 1)
     }
 
@@ -656,8 +658,8 @@ export class VoterViewApi {
       MailingAddress1: request.MailingAddress1,
 
       AddressType: 'C',
-      StreetNumber: request.StreetNumber.toString(),
       StreetName: request.StreetName,
+      StreetNumber: request.StreetNumber.toString(),
 
       CertifyAccuracy: true,
 
@@ -756,6 +758,8 @@ export class VoterViewApi {
     }
   }
 }
+
+export { streetNamesToStringArray } from './helpers.js'
 
 export type {
   CandidateList,

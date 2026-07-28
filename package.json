@@ -24,8 +24,10 @@
   },
   "files": [
     "debug.config.*",
+    "helpers.*",
     "index.*",
-    "types.*"
+    "types.*",
+    "utilities.*"
   ],
   "scripts": {
     "test": "node --test \"test/test.ts\""

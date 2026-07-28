@@ -48,4 +48,5 @@ export declare class VoterViewApi {
         ErrorDescription: string;
     }>;
 }
+export { streetNamesToStringArray } from './helpers.js';
 export type { CandidateList, FrenchRightsCode, Gender, GetVotersListRecordRequest, OccupancyStatus, ReligionCode, RequestDateString, ResidencyStatus, SchoolSupportCode, StreetAddress, StreetName, VotersListRecord, VotersListRegistrationRequest, VotingLocation } from './types.js';
