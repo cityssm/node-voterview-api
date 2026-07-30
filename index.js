@@ -455,13 +455,21 @@ export class VoterViewApi {
      */
     async getVotingLocationsByStreetAddress(streetNumber, streetName) {
         return (await this.#sendRequest('find_voting_locations', 'get', {
-            streetNumber,
-            streetName
+            streetName,
+            streetNumber
         }));
     }
+    /**
+     * Checks if the VoterView API database is under maintenance.
+     * @returns A promise that resolves to a boolean indicating whether the database is under maintenance.
+     */
     async isDatabaseUnderMaintenance() {
         return (await this.#sendRequest('check_maintenance', 'get'));
     }
+    /**
+     * Checks if the VoterView API is using the training database.
+     * @returns A boolean indicating whether the training database is being used.
+     */
     isTrainingDatabase() {
         return this.#requestHeaders['X-IVL-Training'] === 'true';
     }

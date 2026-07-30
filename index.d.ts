@@ -110,7 +110,15 @@ export declare class VoterViewApi {
      * @returns A promise that resolves to an array of `VotingLocation` objects.
      */
     getVotingLocationsByStreetAddress(streetNumber: string, streetName: string): Promise<VotingLocation[]>;
+    /**
+     * Checks if the VoterView API database is under maintenance.
+     * @returns A promise that resolves to a boolean indicating whether the database is under maintenance.
+     */
     isDatabaseUnderMaintenance(): Promise<boolean>;
+    /**
+     * Checks if the VoterView API is using the training database.
+     * @returns A boolean indicating whether the training database is being used.
+     */
     isTrainingDatabase(): boolean;
     /**
      * Submits a voters list update request to the VoterView API.
