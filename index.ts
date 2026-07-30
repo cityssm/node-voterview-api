@@ -21,8 +21,10 @@ import type {
   VoteByMailStatus,
   VotersListRecord,
   VotersListRegistrationRequest,
+  VotersListUpdateRequest,
   VotingLocation
 } from './types.js'
+import { formatRegisterRequest } from './utilities.js'
 
 const debug = Debug(`${DEBUG_NAMESPACE}:index`)
 
@@ -81,6 +83,13 @@ export class VoterViewApi {
 
   #useCache = true
 
+  /**
+   * Creates a new instance of the `VoterViewApi` class.
+   * @param countyMunicipalityCode - The county/municipality code for the VoterView API.
+   * @param username - The username for the VoterView API.
+   * @param password - The password for the VoterView API.
+   * @param useTrainingDatabase - Optional. Whether to use the training database for the VoterView API. Defaults to `false`.
+   */
   constructor(
     countyMunicipalityCode: string,
     username: string,
@@ -107,6 +116,9 @@ export class VoterViewApi {
     }
   }
 
+  /**
+   * Clears all cached data in the `VoterViewApi` instance.
+   */
   clearCache(): void {
     this.#candidateListCache.flushAll()
     this.#streetAddressesCache.flushAll()
@@ -132,16 +144,28 @@ export class VoterViewApi {
     this.#schoolSupportCodesCacheExpiryTimestamp = undefined
   }
 
+  /**
+   * Disables caching of API responses in the `VoterViewApi` instance.
+   */
   disableCache(): void {
     this.#useCache = false
+    this.clearCache()
   }
 
+  /**
+   * Enables caching of API responses in the `VoterViewApi` instance.
+   */
   enableCache(): void {
     this.#useCache = true
   }
 
+  /**
+   * Retrieves all street names from the VoterView API.
+   * This method recursively queries the API for street names, starting with each letter of the alphabet.
+   * @returns A promise that resolves to an array of street names.
+   */
   async getAllStreetNames(): Promise<StreetName[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -213,7 +237,7 @@ export class VoterViewApi {
       await getStreetNamesRecursive(letter, 1)
     }
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching street names')
 
       this.#allStreetNamesCache = allStreetNames
@@ -224,6 +248,13 @@ export class VoterViewApi {
     return allStreetNames
   }
 
+  /**
+   * Retrieves the list of candidates for a specific ward and optional nomination date range.
+   * @param ward - The ward number for which to retrieve the candidate list.
+   * @param nominationDateFrom - Optional. The start date of the nomination date range. Can be a Date object or a `RequestDateString`.
+   * @param nominationDateTo - Optional. The end date of the nomination date range. Can be a Date object or a `RequestDateString`.
+   * @returns A promise that resolves to the list of candidates for the specified ward and date range.
+   */
   async getCandidateListByWard(
     ward: string,
     nominationDateFrom?: Date | RequestDateString,
@@ -241,7 +272,7 @@ export class VoterViewApi {
 
     const cacheKey = `${ward}-${nominationDateFromString}-${nominationDateToString}`
 
-    if (this.useCache) {
+    if (this.#useCache) {
       const cachedCandidateList = this.#candidateListCache.get(cacheKey)
 
       if (cachedCandidateList !== undefined) {
@@ -258,7 +289,7 @@ export class VoterViewApi {
       nominationDateTo: nominationDateToString
     })) as CandidateList
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug(`Caching candidate list for ${cacheKey}`)
 
       this.#candidateListCache.set(
@@ -271,8 +302,12 @@ export class VoterViewApi {
     return candidateList
   }
 
+  /**
+   * Retrieves the list of French language rights codes from the VoterView API.
+   * @returns A promise that resolves to an array of `FrenchRightsCode` objects.
+   */
   async getFrenchLanguageRightsCodes(): Promise<FrenchRightsCode[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -291,7 +326,7 @@ export class VoterViewApi {
       'get'
     )) as FrenchRightsCode[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching French language rights codes')
 
       this.#frenchRightsCodesCache = frenchRightsCodes
@@ -302,8 +337,12 @@ export class VoterViewApi {
     return frenchRightsCodes
   }
 
+  /**
+   * Retrieves the list of genders from the VoterView API.
+   * @returns A promise that resolves to an array of `Gender` objects.
+   */
   async getGenders(): Promise<Gender[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -319,7 +358,7 @@ export class VoterViewApi {
 
     const genders = (await this.#sendRequest('genders', 'get')) as Gender[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching genders')
 
       this.#gendersCache = genders
@@ -330,8 +369,12 @@ export class VoterViewApi {
     return genders
   }
 
+  /**
+   * Retrieves the list of occupancy statuses from the VoterView API.
+   * @returns A promise that resolves to an array of `OccupancyStatus` objects.
+   */
   async getOccupancyStatuses(): Promise<OccupancyStatus[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -350,7 +393,7 @@ export class VoterViewApi {
       'get'
     )) as OccupancyStatus[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching occupancy statuses')
 
       this.#occupancyStatusesCache = occupancyStatuses
@@ -361,8 +404,12 @@ export class VoterViewApi {
     return occupancyStatuses
   }
 
+  /**
+   * Retrieves the list of residency statuses from the VoterView API.
+   * @returns A promise that resolves to an array of `ResidencyStatus` objects.
+   */
   async getResidencyStatuses(): Promise<ResidencyStatus[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -381,7 +428,7 @@ export class VoterViewApi {
       'get'
     )) as ResidencyStatus[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching residency statuses')
 
       this.#residencyStatusesCache = residencyStatuses
@@ -392,8 +439,12 @@ export class VoterViewApi {
     return residencyStatuses
   }
 
+  /**
+   * Retrieves the list of Roman Catholic religion codes from the VoterView API.
+   * @returns A promise that resolves to an array of `ReligionCode` objects.
+   */
   async getRomanCatholicReligionCodes(): Promise<ReligionCode[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -412,7 +463,7 @@ export class VoterViewApi {
       'get'
     )) as ReligionCode[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching Roman Catholic religion codes')
 
       this.#religionCodesCache = religionCodes
@@ -423,8 +474,12 @@ export class VoterViewApi {
     return religionCodes
   }
 
+  /**
+   * Retrieves the list of school support codes from the VoterView API.
+   * @returns A promise that resolves to an array of `SchoolSupportCode` objects.
+   */
   async getSchoolSupportCodes(): Promise<SchoolSupportCode[]> {
-    if (this.useCache) {
+    if (this.#useCache) {
       const now = Date.now()
 
       if (
@@ -443,7 +498,7 @@ export class VoterViewApi {
       'get'
     )) as SchoolSupportCode[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug('Caching school support codes')
 
       this.#schoolSupportCodesCache = schoolSupportCodes
@@ -458,12 +513,12 @@ export class VoterViewApi {
    * Get street addresses starting with the given civic address search string.
    * Matches up to 30 street addresses for the given civic address search string.
    * @param queryString - The civic address search string.
-   * @returns An array of street addresses matching the civic address search string.
+   * @returns A promise that resolves to an array of `StreetAddress` objects matching the civic address search string.
    */
   async getStreetAddresses(queryString: string): Promise<StreetAddress[]> {
     const cacheKey = queryString.toLowerCase()
 
-    if (this.useCache) {
+    if (this.#useCache) {
       const cachedStreetAddresses = this.#streetAddressesCache.get(cacheKey)
 
       if (cachedStreetAddresses !== undefined) {
@@ -481,7 +536,7 @@ export class VoterViewApi {
       }
     )) as StreetAddress[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug(`Caching street addresses for ${cacheKey}`)
 
       this.#streetAddressesCache.set(
@@ -494,10 +549,16 @@ export class VoterViewApi {
     return streetAddresses
   }
 
+  /**
+   * Get street names starting with the given query string.
+   * Matches up to 20 street names for the given query string.
+   * @param queryString - The query string to search for street names.
+   * @returns A promise that resolves to an array of `StreetName` objects.
+   */
   async getStreetNames(queryString: string): Promise<StreetName[]> {
     const cacheKey = queryString.toLowerCase()
 
-    if (this.useCache) {
+    if (this.#useCache) {
       const cachedStreetNames = this.#streetNamesCache.get(cacheKey)
 
       if (cachedStreetNames !== undefined) {
@@ -511,7 +572,7 @@ export class VoterViewApi {
       query: queryString
     })) as StreetName[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug(`Caching street names for ${cacheKey}`)
 
       this.#streetNamesCache.set(cacheKey, streetNames, this.cacheExpirySeconds)
@@ -520,10 +581,16 @@ export class VoterViewApi {
     return streetNames
   }
 
+  /**
+   * Get street types starting with the given query string.
+   * Matches up to 20 street types for the given query string.
+   * @param queryString - The query string to search for street types.
+   * @returns A promise that resolves to an array of `string` objects.
+   */
   async getStreetTypes(queryString: string): Promise<string[]> {
     const cacheKey = queryString.toLowerCase()
 
-    if (this.useCache) {
+    if (this.#useCache) {
       const cachedStreetTypes = this.#streetTypesCache.get(cacheKey)
 
       if (cachedStreetTypes !== undefined) {
@@ -537,7 +604,7 @@ export class VoterViewApi {
       query: queryString
     })) as string[]
 
-    if (this.useCache) {
+    if (this.#useCache) {
       debug(`Caching street types for ${cacheKey}`)
 
       this.#streetTypesCache.set(cacheKey, streetTypes, this.cacheExpirySeconds)
@@ -546,6 +613,12 @@ export class VoterViewApi {
     return streetTypes
   }
 
+  /**
+   * Retrieves the vote-by-mail status for a voter using their confirmation code and last name.
+   * @param confirmationCode - The confirmation code provided to the voter for vote-by-mail.
+   * @param lastName - The last name of the voter.
+   * @returns A promise that resolves to the `VoteByMailStatus` object containing the voter's vote-by-mail status.
+   */
   async getVoteByMailStatus(
     confirmationCode: string,
     lastName: string
@@ -556,6 +629,11 @@ export class VoterViewApi {
     })) as VoteByMailStatus
   }
 
+  /**
+   * Retrieves a voter's record from the VoterView API based on the provided request parameters.
+   * @param request - The request object containing the necessary parameters to retrieve the voter's record.
+   * @returns A promise that resolves to the `VotersListRecord` object containing the voter's record.
+   */
   async getVotersListRecord(
     request: GetVotersListRecordRequest
   ): Promise<VotersListRecord> {
@@ -600,7 +678,7 @@ export class VoterViewApi {
    * Get voting locations by street address.
    * @param streetNumber - The street number of the address to search for.
    * @param streetName - The street name of the address to search for.
-   * @returns A promise that resolves to an array of VotingLocation objects.
+   * @returns A promise that resolves to an array of `VotingLocation` objects.
    */
   async getVotingLocationsByStreetAddress(
     streetNumber: string,
@@ -621,13 +699,13 @@ export class VoterViewApi {
   }
 
   /**
-   * Submits a voters list registration request to the VoterView API.
-   * @param request - The voters list registration request object containing the necessary information.
+   * Submits a voters list update request to the VoterView API.
+   * @param request - The voters list registration or update request object containing the necessary information.
    * @throws {Error} Will throw an error if validation fails
    * @returns A promise that resolves to the response from the VoterView API.
    */
-  async submitVotersListRegistration(
-    request: VotersListRegistrationRequest
+  async submitVotersListUpdate(
+    request: VotersListRegistrationRequest | VotersListUpdateRequest
   ): Promise<
     | string
     | {
@@ -635,89 +713,16 @@ export class VoterViewApi {
         ErrorDescription: string
       }
   > {
-    const formattedRequest: Record<string, string | number | boolean> = {
-      FirstName: request.FirstName,
-      LastName: request.LastName,
-      MiddleName: request.MiddleName,
-
-      Day: request.BirthDay.toString().padStart(2, '0'),
-      Month: request.BirthMonth.toString().padStart(2, '0'),
-      Year: request.BirthYear.toString(),
-
-      Email: request.Email,
-      Telephone: request.Telephone,
-
-      Citizenship: request.Citizenship,
-      FrenchLanguageRights: request.FrenchLanguageRights,
-      Gender: request.Gender,
-      OccupancyStatus: request.OccupancyStatus,
-      Religion: request.Religion,
-      ResidencyStatus: request.ResidencyStatus,
-      SchoolSupport: request.SchoolSupport,
-
-      MailingAddress1: request.MailingAddress1,
-
-      AddressType: 'C',
-      StreetName: request.StreetName,
-      StreetNumber: request.StreetNumber.toString(),
-
-      CertifyAccuracy: true,
-
-      AbsenteeVoteType: 0 // Must be '0' for voters list registration requests
-    }
-
-    switch (request.PreferredContactMethod) {
-      case 'Email': {
-        formattedRequest.PreferredContactMethod = '0'
-        break
-      }
-
-      case 'Mail': {
-        formattedRequest.PreferredContactMethod = '1'
-        break
-      }
-
-      case 'Phone': {
-        formattedRequest.PreferredContactMethod = '2'
-        break
-      }
-    }
-
-    for (const key of [
-      'DriversLicenceNumber',
-      'SIN',
-      'MailingAddress2',
-      'MailingAddress3',
-      'MailingCity',
-      'MailingProvince',
-      'MailingPostalCode',
-      'MailingCountry',
-      'StreetNumberSuffix',
-      'StreetType',
-      'StreetDirection',
-      'UnitNumber',
-      'UnitType',
-      'IPAddress',
-      'UploadIDContent',
-      'UploadIDFileName',
-      'UploadID2Content',
-      'UploadID2FileName',
-      'UploadID3Content'
-    ] satisfies Array<keyof VotersListRegistrationRequest>) {
-      const value = request[key]
-
-      if (value !== undefined) {
-        formattedRequest[key] = value
-      }
-    }
-
-    // TODO: Validate the request object before sending it to the API.
+    const formattedRequest = formatRegisterRequest(request)
 
     try {
       return (await this.#sendRequest(
         'register',
         'post',
-        formattedRequest
+        formattedRequest as unknown as Record<
+          string,
+          string | number | boolean | undefined
+        >
       )) as string
     } catch (error) {
       debug('Failed to register voter:', error)
@@ -728,7 +733,7 @@ export class VoterViewApi {
   async #sendRequest(
     endpoint: string,
     method: 'get' | 'post',
-    parameters: Record<string, string | number | boolean> = {}
+    parameters: Record<string, string | number | boolean | undefined> = {}
   ): Promise<unknown> {
     debug(
       `Sending ${method.toUpperCase()} request to ${endpoint} with parameters:`,
@@ -739,6 +744,10 @@ export class VoterViewApi {
 
     if (method === 'get') {
       for (const [key, value] of Object.entries(parameters)) {
+        if (value === undefined) {
+          continue
+        }
+
         url.searchParams.append(key, value.toString())
       }
       return await fetch(url.toString(), {
@@ -773,7 +782,10 @@ export type {
   SchoolSupportCode,
   StreetAddress,
   StreetName,
+  VoteByMailStatus,
+  VotersListBaseRegistrationRequest,
   VotersListRecord,
   VotersListRegistrationRequest,
+  VotersListUpdateRequest,
   VotingLocation
 } from './types.js'

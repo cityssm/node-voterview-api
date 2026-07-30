@@ -296,7 +296,7 @@ export declare const preferEmailForContactMap: {
     readonly Mail: 1;
     readonly Phone: 2;
 };
-interface RegistrationRequest {
+export interface VotersListBaseRegistrationRequest {
     FirstName: string;
     LastName: string;
     MiddleName: string;
@@ -305,7 +305,7 @@ interface RegistrationRequest {
     BirthYear: number | string;
     Email: string;
     Telephone: string;
-    Gender: string;
+    Gender?: string;
     SchoolSupport: string;
     Citizenship: 'N' | 'Y';
     OccupancyStatus: string;
@@ -329,8 +329,8 @@ interface RegistrationRequest {
     UnitNumber?: string;
     UnitType?: string;
     IPAddress?: string;
-    UploadIDContent?: string;
-    UploadIDFileName?: string;
+    UploadID1Content?: string;
+    UploadID1FileName?: string;
     UploadID2Content?: string;
     UploadID2FileName?: string;
     UploadID3Content?: string;
@@ -338,8 +338,8 @@ interface RegistrationRequest {
     PreferredContactMethod: keyof typeof preferEmailForContactMap;
     NotifyWhenProcessed?: boolean;
 }
-export type VotersListRegistrationRequest = RegistrationRequest;
-export type VotersListUpdateRequest = RegistrationRequest & {
+export type VotersListRegistrationRequest = VotersListBaseRegistrationRequest;
+export type VotersListUpdateRequest = VotersListBaseRegistrationRequest & {
     VoterID: number | string;
     PropertyID: number | string;
     AbsenteeAddress1?: string;

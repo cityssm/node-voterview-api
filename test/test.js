@@ -106,7 +106,7 @@ await describe.skip('VoterViewApi - Registration Process', async () => {
             debug('Skipping test because the training database is not being used');
             return;
         }
-        const registrationResult = await api.submitVotersListRegistration(testVotersListRegistrationRequest);
+        const registrationResult = await api.submitVotersListUpdate(testVotersListRegistrationRequest);
         debug(registrationResult);
         assert.ok(typeof registrationResult === 'string', 'Expected a string result from the voters list registration');
     });

@@ -17,7 +17,7 @@ interface FormattedRegisterRequest {
   Day: string
 
   Email: string
-  Gender: string
+  Gender?: string
   SchoolSupport: string
   Citizenship: string
   OccupancyStatus: string
@@ -50,8 +50,8 @@ interface FormattedRegisterRequest {
 
   IPAddress?: string
 
-  UploadIDContent?: string
-  UploadIDFileName?: string
+  UploadID1Content?: string
+  UploadID1FileName?: string
 
   UploadID2Content?: string
   UploadID2FileName?: string
@@ -131,8 +131,8 @@ export function formatRegisterRequest(
 
     IPAddress: request.IPAddress,
 
-    UploadIDContent: request.UploadIDContent,
-    UploadIDFileName: request.UploadIDFileName,
+    UploadID1Content: request.UploadID1Content,
+    UploadID1FileName: request.UploadID1FileName,
 
     UploadID2Content: request.UploadID2Content,
     UploadID2FileName: request.UploadID2FileName,

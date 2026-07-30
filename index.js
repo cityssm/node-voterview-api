@@ -4,6 +4,7 @@ import { rollNumberMunicipalities } from '@cityssm/mpac-tools';
 import { secondsInOneHour, secondsToMillis } from '@cityssm/to-millis';
 import Debug from 'debug';
 import { DEBUG_NAMESPACE } from './debug.config.js';
+import { formatRegisterRequest } from './utilities.js';
 const debug = Debug(`${DEBUG_NAMESPACE}:index`);
 export class VoterViewApi {
     get cacheExpirySeconds() {
@@ -43,6 +44,13 @@ export class VoterViewApi {
     #streetNamesCache = new NodeCache();
     #streetTypesCache = new NodeCache();
     #useCache = true;
+    /**
+     * Creates a new instance of the `VoterViewApi` class.
+     * @param countyMunicipalityCode - The county/municipality code for the VoterView API.
+     * @param username - The username for the VoterView API.
+     * @param password - The password for the VoterView API.
+     * @param useTrainingDatabase - Optional. Whether to use the training database for the VoterView API. Defaults to `false`.
+     */
     constructor(countyMunicipalityCode, username, password, useTrainingDatabase = false) {
         if (!Object.keys(rollNumberMunicipalities).includes(countyMunicipalityCode)) {
             debug(`WARNING: County/municipality code not recognized: ${countyMunicipalityCode}`);
@@ -56,6 +64,9 @@ export class VoterViewApi {
             this.#requestHeaders['X-IVL-Training'] = 'true';
         }
     }
+    /**
+     * Clears all cached data in the `VoterViewApi` instance.
+     */
     clearCache() {
         this.#candidateListCache.flushAll();
         this.#streetAddressesCache.flushAll();
@@ -74,14 +85,26 @@ export class VoterViewApi {
         this.#schoolSupportCodesCache = undefined;
         this.#schoolSupportCodesCacheExpiryTimestamp = undefined;
     }
+    /**
+     * Disables caching of API responses in the `VoterViewApi` instance.
+     */
     disableCache() {
         this.#useCache = false;
+        this.clearCache();
     }
+    /**
+     * Enables caching of API responses in the `VoterViewApi` instance.
+     */
     enableCache() {
         this.#useCache = true;
     }
+    /**
+     * Retrieves all street names from the VoterView API.
+     * This method recursively queries the API for street names, starting with each letter of the alphabet.
+     * @returns A promise that resolves to an array of street names.
+     */
     async getAllStreetNames() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#allStreetNamesCache !== undefined &&
                 this.#allStreetNamesCacheExpiryTimestamp !== undefined &&
@@ -129,7 +152,7 @@ export class VoterViewApi {
             // eslint-disable-next-line no-await-in-loop
             await getStreetNamesRecursive(letter, 1);
         }
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching street names');
             this.#allStreetNamesCache = allStreetNames;
             this.#allStreetNamesCacheExpiryTimestamp =
@@ -137,6 +160,13 @@ export class VoterViewApi {
         }
         return allStreetNames;
     }
+    /**
+     * Retrieves the list of candidates for a specific ward and optional nomination date range.
+     * @param ward - The ward number for which to retrieve the candidate list.
+     * @param nominationDateFrom - Optional. The start date of the nomination date range. Can be a Date object or a `RequestDateString`.
+     * @param nominationDateTo - Optional. The end date of the nomination date range. Can be a Date object or a `RequestDateString`.
+     * @returns A promise that resolves to the list of candidates for the specified ward and date range.
+     */
     async getCandidateListByWard(ward, nominationDateFrom, nominationDateTo) {
         const nominationDateFromString = nominationDateFrom instanceof Date
             ? `${nominationDateFrom.getFullYear()}/${nominationDateFrom.getMonth() + 1}/${nominationDateFrom.getDate()}`
@@ -145,7 +175,7 @@ export class VoterViewApi {
             ? `${nominationDateTo.getFullYear()}/${nominationDateTo.getMonth() + 1}/${nominationDateTo.getDate()}`
             : (nominationDateTo ?? `${new Date().getFullYear()}/12/31`);
         const cacheKey = `${ward}-${nominationDateFromString}-${nominationDateToString}`;
-        if (this.useCache) {
+        if (this.#useCache) {
             const cachedCandidateList = this.#candidateListCache.get(cacheKey);
             if (cachedCandidateList !== undefined) {
                 debug(`Returning cached candidate list for ${cacheKey}`);
@@ -157,14 +187,18 @@ export class VoterViewApi {
             nominationDateFrom: nominationDateFromString,
             nominationDateTo: nominationDateToString
         }));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug(`Caching candidate list for ${cacheKey}`);
             this.#candidateListCache.set(cacheKey, candidateList, this.cacheExpirySeconds);
         }
         return candidateList;
     }
+    /**
+     * Retrieves the list of French language rights codes from the VoterView API.
+     * @returns A promise that resolves to an array of `FrenchRightsCode` objects.
+     */
     async getFrenchLanguageRightsCodes() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#frenchRightsCodesCache !== undefined &&
                 this.#frenchRightsCodesCacheExpiryTimestamp !== undefined &&
@@ -174,7 +208,7 @@ export class VoterViewApi {
             }
         }
         const frenchRightsCodes = (await this.#sendRequest('french_rights', 'get'));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching French language rights codes');
             this.#frenchRightsCodesCache = frenchRightsCodes;
             this.#frenchRightsCodesCacheExpiryTimestamp =
@@ -182,8 +216,12 @@ export class VoterViewApi {
         }
         return frenchRightsCodes;
     }
+    /**
+     * Retrieves the list of genders from the VoterView API.
+     * @returns A promise that resolves to an array of `Gender` objects.
+     */
     async getGenders() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#gendersCache !== undefined &&
                 this.#gendersCacheExpiryTimestamp !== undefined &&
@@ -193,7 +231,7 @@ export class VoterViewApi {
             }
         }
         const genders = (await this.#sendRequest('genders', 'get'));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching genders');
             this.#gendersCache = genders;
             this.#gendersCacheExpiryTimestamp =
@@ -201,8 +239,12 @@ export class VoterViewApi {
         }
         return genders;
     }
+    /**
+     * Retrieves the list of occupancy statuses from the VoterView API.
+     * @returns A promise that resolves to an array of `OccupancyStatus` objects.
+     */
     async getOccupancyStatuses() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#occupancyStatusesCache !== undefined &&
                 this.#occupancyStatusesCacheExpiryTimestamp !== undefined &&
@@ -212,7 +254,7 @@ export class VoterViewApi {
             }
         }
         const occupancyStatuses = (await this.#sendRequest('occupancy_statuses', 'get'));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching occupancy statuses');
             this.#occupancyStatusesCache = occupancyStatuses;
             this.#occupancyStatusesCacheExpiryTimestamp =
@@ -220,8 +262,12 @@ export class VoterViewApi {
         }
         return occupancyStatuses;
     }
+    /**
+     * Retrieves the list of residency statuses from the VoterView API.
+     * @returns A promise that resolves to an array of `ResidencyStatus` objects.
+     */
     async getResidencyStatuses() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#residencyStatusesCache !== undefined &&
                 this.#residencyStatusesCacheExpiryTimestamp !== undefined &&
@@ -231,7 +277,7 @@ export class VoterViewApi {
             }
         }
         const residencyStatuses = (await this.#sendRequest('residency_statuses', 'get'));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching residency statuses');
             this.#residencyStatusesCache = residencyStatuses;
             this.#residencyStatusesCacheExpiryTimestamp =
@@ -239,8 +285,12 @@ export class VoterViewApi {
         }
         return residencyStatuses;
     }
+    /**
+     * Retrieves the list of Roman Catholic religion codes from the VoterView API.
+     * @returns A promise that resolves to an array of `ReligionCode` objects.
+     */
     async getRomanCatholicReligionCodes() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#religionCodesCache !== undefined &&
                 this.#religionCodesCacheExpiryTimestamp !== undefined &&
@@ -250,7 +300,7 @@ export class VoterViewApi {
             }
         }
         const religionCodes = (await this.#sendRequest('religions', 'get'));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching Roman Catholic religion codes');
             this.#religionCodesCache = religionCodes;
             this.#religionCodesCacheExpiryTimestamp =
@@ -258,8 +308,12 @@ export class VoterViewApi {
         }
         return religionCodes;
     }
+    /**
+     * Retrieves the list of school support codes from the VoterView API.
+     * @returns A promise that resolves to an array of `SchoolSupportCode` objects.
+     */
     async getSchoolSupportCodes() {
-        if (this.useCache) {
+        if (this.#useCache) {
             const now = Date.now();
             if (this.#schoolSupportCodesCache !== undefined &&
                 this.#schoolSupportCodesCacheExpiryTimestamp !== undefined &&
@@ -269,7 +323,7 @@ export class VoterViewApi {
             }
         }
         const schoolSupportCodes = (await this.#sendRequest('school_supports', 'get'));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug('Caching school support codes');
             this.#schoolSupportCodesCache = schoolSupportCodes;
             this.#schoolSupportCodesCacheExpiryTimestamp =
@@ -281,11 +335,11 @@ export class VoterViewApi {
      * Get street addresses starting with the given civic address search string.
      * Matches up to 30 street addresses for the given civic address search string.
      * @param queryString - The civic address search string.
-     * @returns An array of street addresses matching the civic address search string.
+     * @returns A promise that resolves to an array of `StreetAddress` objects matching the civic address search string.
      */
     async getStreetAddresses(queryString) {
         const cacheKey = queryString.toLowerCase();
-        if (this.useCache) {
+        if (this.#useCache) {
             const cachedStreetAddresses = this.#streetAddressesCache.get(cacheKey);
             if (cachedStreetAddresses !== undefined) {
                 debug(`Returning cached street addresses for ${cacheKey}`);
@@ -295,15 +349,21 @@ export class VoterViewApi {
         const streetAddresses = (await this.#sendRequest('street_addresses', 'get', {
             query: queryString
         }));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug(`Caching street addresses for ${cacheKey}`);
             this.#streetAddressesCache.set(cacheKey, streetAddresses, this.cacheExpirySeconds);
         }
         return streetAddresses;
     }
+    /**
+     * Get street names starting with the given query string.
+     * Matches up to 20 street names for the given query string.
+     * @param queryString - The query string to search for street names.
+     * @returns A promise that resolves to an array of `StreetName` objects.
+     */
     async getStreetNames(queryString) {
         const cacheKey = queryString.toLowerCase();
-        if (this.useCache) {
+        if (this.#useCache) {
             const cachedStreetNames = this.#streetNamesCache.get(cacheKey);
             if (cachedStreetNames !== undefined) {
                 debug(`Returning cached street names for ${cacheKey}`);
@@ -313,15 +373,21 @@ export class VoterViewApi {
         const streetNames = (await this.#sendRequest('street_names', 'get', {
             query: queryString
         }));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug(`Caching street names for ${cacheKey}`);
             this.#streetNamesCache.set(cacheKey, streetNames, this.cacheExpirySeconds);
         }
         return streetNames;
     }
+    /**
+     * Get street types starting with the given query string.
+     * Matches up to 20 street types for the given query string.
+     * @param queryString - The query string to search for street types.
+     * @returns A promise that resolves to an array of `string` objects.
+     */
     async getStreetTypes(queryString) {
         const cacheKey = queryString.toLowerCase();
-        if (this.useCache) {
+        if (this.#useCache) {
             const cachedStreetTypes = this.#streetTypesCache.get(cacheKey);
             if (cachedStreetTypes !== undefined) {
                 debug(`Returning cached street types for ${cacheKey}`);
@@ -331,18 +397,29 @@ export class VoterViewApi {
         const streetTypes = (await this.#sendRequest('street_types', 'get', {
             query: queryString
         }));
-        if (this.useCache) {
+        if (this.#useCache) {
             debug(`Caching street types for ${cacheKey}`);
             this.#streetTypesCache.set(cacheKey, streetTypes, this.cacheExpirySeconds);
         }
         return streetTypes;
     }
+    /**
+     * Retrieves the vote-by-mail status for a voter using their confirmation code and last name.
+     * @param confirmationCode - The confirmation code provided to the voter for vote-by-mail.
+     * @param lastName - The last name of the voter.
+     * @returns A promise that resolves to the `VoteByMailStatus` object containing the voter's vote-by-mail status.
+     */
     async getVoteByMailStatus(confirmationCode, lastName) {
         return (await this.#sendRequest('status', 'get', {
             ConfirmationCode: confirmationCode,
             LastName: lastName
         }));
     }
+    /**
+     * Retrieves a voter's record from the VoterView API based on the provided request parameters.
+     * @param request - The request object containing the necessary parameters to retrieve the voter's record.
+     * @returns A promise that resolves to the `VotersListRecord` object containing the voter's record.
+     */
     async getVotersListRecord(request) {
         const formattedRequest = {
             FirstName: request.FirstName,
@@ -374,7 +451,7 @@ export class VoterViewApi {
      * Get voting locations by street address.
      * @param streetNumber - The street number of the address to search for.
      * @param streetName - The street name of the address to search for.
-     * @returns A promise that resolves to an array of VotingLocation objects.
+     * @returns A promise that resolves to an array of `VotingLocation` objects.
      */
     async getVotingLocationsByStreetAddress(streetNumber, streetName) {
         return (await this.#sendRequest('find_voting_locations', 'get', {
@@ -389,76 +466,13 @@ export class VoterViewApi {
         return this.#requestHeaders['X-IVL-Training'] === 'true';
     }
     /**
-     * Submits a voters list registration request to the VoterView API.
-     * @param request - The voters list registration request object containing the necessary information.
+     * Submits a voters list update request to the VoterView API.
+     * @param request - The voters list registration or update request object containing the necessary information.
      * @throws {Error} Will throw an error if validation fails
      * @returns A promise that resolves to the response from the VoterView API.
      */
-    async submitVotersListRegistration(request) {
-        const formattedRequest = {
-            FirstName: request.FirstName,
-            LastName: request.LastName,
-            MiddleName: request.MiddleName,
-            Day: request.BirthDay.toString().padStart(2, '0'),
-            Month: request.BirthMonth.toString().padStart(2, '0'),
-            Year: request.BirthYear.toString(),
-            Email: request.Email,
-            Telephone: request.Telephone,
-            Citizenship: request.Citizenship,
-            FrenchLanguageRights: request.FrenchLanguageRights,
-            Gender: request.Gender,
-            OccupancyStatus: request.OccupancyStatus,
-            Religion: request.Religion,
-            ResidencyStatus: request.ResidencyStatus,
-            SchoolSupport: request.SchoolSupport,
-            MailingAddress1: request.MailingAddress1,
-            AddressType: 'C',
-            StreetName: request.StreetName,
-            StreetNumber: request.StreetNumber.toString(),
-            CertifyAccuracy: true,
-            AbsenteeVoteType: 0 // Must be '0' for voters list registration requests
-        };
-        switch (request.PreferredContactMethod) {
-            case 'Email': {
-                formattedRequest.PreferredContactMethod = '0';
-                break;
-            }
-            case 'Mail': {
-                formattedRequest.PreferredContactMethod = '1';
-                break;
-            }
-            case 'Phone': {
-                formattedRequest.PreferredContactMethod = '2';
-                break;
-            }
-        }
-        for (const key of [
-            'DriversLicenceNumber',
-            'SIN',
-            'MailingAddress2',
-            'MailingAddress3',
-            'MailingCity',
-            'MailingProvince',
-            'MailingPostalCode',
-            'MailingCountry',
-            'StreetNumberSuffix',
-            'StreetType',
-            'StreetDirection',
-            'UnitNumber',
-            'UnitType',
-            'IPAddress',
-            'UploadIDContent',
-            'UploadIDFileName',
-            'UploadID2Content',
-            'UploadID2FileName',
-            'UploadID3Content'
-        ]) {
-            const value = request[key];
-            if (value !== undefined) {
-                formattedRequest[key] = value;
-            }
-        }
-        // TODO: Validate the request object before sending it to the API.
+    async submitVotersListUpdate(request) {
+        const formattedRequest = formatRegisterRequest(request);
         try {
             return (await this.#sendRequest('register', 'post', formattedRequest));
         }
@@ -472,6 +486,9 @@ export class VoterViewApi {
         const url = new URL(`${this.#baseUrl}${endpoint}`);
         if (method === 'get') {
             for (const [key, value] of Object.entries(parameters)) {
+                if (value === undefined) {
+                    continue;
+                }
                 url.searchParams.append(key, value.toString());
             }
             return await fetch(url.toString(), {

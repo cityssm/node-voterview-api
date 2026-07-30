@@ -9,7 +9,7 @@ interface FormattedRegisterRequest {
     Month: string;
     Day: string;
     Email: string;
-    Gender: string;
+    Gender?: string;
     SchoolSupport: string;
     Citizenship: string;
     OccupancyStatus: string;
@@ -35,8 +35,8 @@ interface FormattedRegisterRequest {
     UnitNumber?: string;
     UnitType?: string;
     IPAddress?: string;
-    UploadIDContent?: string;
-    UploadIDFileName?: string;
+    UploadID1Content?: string;
+    UploadID1FileName?: string;
     UploadID2Content?: string;
     UploadID2FileName?: string;
     UploadID3Content?: string;

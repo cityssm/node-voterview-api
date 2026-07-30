@@ -214,7 +214,7 @@ await describe.skip('VoterViewApi - Registration Process', async () => {
       return
     }
 
-    const registrationResult = await api.submitVotersListRegistration(
+    const registrationResult = await api.submitVotersListUpdate(
       testVotersListRegistrationRequest
     )
 

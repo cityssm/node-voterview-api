@@ -206,6 +206,7 @@ export interface CandidateList {
       /** Undocumented */
       WardName: string
     }>
+
     DisplaySequence: number
     NumberPositions: number
     PositionName: string
@@ -364,7 +365,7 @@ export const preferEmailForContactMap = {
   Phone: 2
 } as const
 
-interface RegistrationRequest {
+export interface VotersListBaseRegistrationRequest {
   FirstName: string
   LastName: string
   MiddleName: string
@@ -376,7 +377,7 @@ interface RegistrationRequest {
   Email: string
   Telephone: string
 
-  Gender: string
+  Gender?: string
   SchoolSupport: string
   Citizenship: 'N' | 'Y'
   OccupancyStatus: string
@@ -406,8 +407,8 @@ interface RegistrationRequest {
 
   IPAddress?: string
 
-  UploadIDContent?: string
-  UploadIDFileName?: string
+  UploadID1Content?: string
+  UploadID1FileName?: string
 
   UploadID2Content?: string
   UploadID2FileName?: string
@@ -420,9 +421,9 @@ interface RegistrationRequest {
   NotifyWhenProcessed?: boolean
 }
 
-export type VotersListRegistrationRequest = RegistrationRequest
+export type VotersListRegistrationRequest = VotersListBaseRegistrationRequest
 
-export type VotersListUpdateRequest = RegistrationRequest & {
+export type VotersListUpdateRequest = VotersListBaseRegistrationRequest & {
   VoterID: number | string
   PropertyID: number | string
 
