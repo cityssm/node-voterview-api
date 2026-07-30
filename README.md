@@ -1,5 +1,8 @@
 # VoterView API for Node
 
+[![DeepSource](https://app.deepsource.com/gh/cityssm/node-voterview-api.svg/?label=active+issues&show_trend=true&token=dlYSa6tCawJBplGPOzQzjiWW)](https://app.deepsource.com/gh/cityssm/node-voterview-api/)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=cityssm_node-voterview-api&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=cityssm_node-voterview-api)
+
 **An unofficial wrapper around DataFix's [VoterView](https://datafix.com/services/voterview/) Online Voter Services REST API.**
 
 ## Features
@@ -11,8 +14,6 @@
 - **Helper functions** to add features not part of the official API.
 
 ## Installation
-
-**Coming soon.**
 
 ```bash
 npm install @cityssm/voterview-api
