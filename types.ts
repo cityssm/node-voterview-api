@@ -435,11 +435,16 @@ export interface VotersListBaseRegistrationRequest {
   NotifyWhenProcessed?: boolean
 }
 
-export type VotersListRegistrationRequest = VotersListBaseRegistrationRequest
+export type VotersListRegistrationRequest = VotersListBaseRegistrationRequest & {
+  AbsenteeVoteType?: '0'
+}
 
 export type VotersListUpdateRequest = VotersListBaseRegistrationRequest & {
   VoterID: number | string
   PropertyID: number | string
+
+  /** "0" for no absentee vote, "1" for absentee vote */
+  AbsenteeVoteType?: '0' | '1'
 
   AbsenteeAddress1?: string
   AbsenteeAddress2?: string

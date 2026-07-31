@@ -147,7 +147,9 @@ export function formatRegisterRequest(
 
     AbsenteeVoteType:
       Object.hasOwn(request, 'VoterID') &&
-      Object.hasOwn(request, 'AbsenteeAddress1')
+      Object.hasOwn(request, 'AbsenteeAddress1') &&
+      Object.hasOwn(request, 'AbsenteeVoteType') &&
+      (request as VotersListUpdateRequest).AbsenteeVoteType === '1'
         ? 1
         : 0,
 

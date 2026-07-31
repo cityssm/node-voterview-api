@@ -49,7 +49,9 @@ export function formatRegisterRequest(request) {
         PreferEmailForContact: preferEmailForContactMap[request.PreferredContactMethod],
         NotifyWhenProcessed: request.NotifyWhenProcessed,
         AbsenteeVoteType: Object.hasOwn(request, 'VoterID') &&
-            Object.hasOwn(request, 'AbsenteeAddress1')
+            Object.hasOwn(request, 'AbsenteeAddress1') &&
+            Object.hasOwn(request, 'AbsenteeVoteType') &&
+            request.AbsenteeVoteType === '1'
             ? 1
             : 0,
         AbsenteeAddress1: Object.hasOwn(request, 'AbsenteeAddress1')
