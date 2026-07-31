@@ -45,25 +45,55 @@ export declare class VoterViewApi {
      */
     getFrenchLanguageRightsCodes(): Promise<FrenchRightsCode[]>;
     /**
+     * Retrieves the description of a gender based on the provided gender code.
+     * @param genderCode - The gender code for which to retrieve the description.
+     * @returns A promise that resolves to the gender description, or `undefined` if the gender code is not found.
+     */
+    getGenderDescription(genderCode: string): Promise<string | undefined>;
+    /**
      * Retrieves the list of genders from the VoterView API.
      * @returns A promise that resolves to an array of `Gender` objects.
      */
     getGenders(): Promise<Gender[]>;
+    /**
+     * Retrieves the description of an occupancy status based on the provided occupancy status code.
+     * @param occupancyStatusCode - The occupancy status code for which to retrieve the description.
+     * @returns A promise that resolves to the occupancy status description, or `undefined` if the occupancy status code is not found.
+     */
+    getOccupancyStatusDescription(occupancyStatusCode: string): Promise<string | undefined>;
     /**
      * Retrieves the list of occupancy statuses from the VoterView API.
      * @returns A promise that resolves to an array of `OccupancyStatus` objects.
      */
     getOccupancyStatuses(): Promise<OccupancyStatus[]>;
     /**
+     * Retrieves the description of a residency status based on the provided residency status code.
+     * @param residencyStatusCode - The residency status code for which to retrieve the description.
+     * @returns A promise that resolves to the residency status description, or `undefined` if the residency status code is not found.
+     */
+    getResidencyStatusDescription(residencyStatusCode: string): Promise<string | undefined>;
+    /**
      * Retrieves the list of residency statuses from the VoterView API.
      * @returns A promise that resolves to an array of `ResidencyStatus` objects.
      */
     getResidencyStatuses(): Promise<ResidencyStatus[]>;
     /**
+     * Retrieves the description of a Roman Catholic religion based on the provided religion code.
+     * @param religionCode - The religion code for which to retrieve the description.
+     * @returns A promise that resolves to the religion description, or `undefined` if the religion code is not found.
+     */
+    getRomanCatholicReligionCodeDescription(religionCode: string): Promise<string | undefined>;
+    /**
      * Retrieves the list of Roman Catholic religion codes from the VoterView API.
      * @returns A promise that resolves to an array of `ReligionCode` objects.
      */
     getRomanCatholicReligionCodes(): Promise<ReligionCode[]>;
+    /**
+     * Retrieves the description of a school support code based on the provided school support code.
+     * @param schoolSupportCode - The school support code for which to retrieve the description.
+     * @returns A promise that resolves to the school support description, or `undefined` if the school support code is not found.
+     */
+    getSchoolSupportCodeDescription(schoolSupportCode: string): Promise<string | undefined>;
     /**
      * Retrieves the list of school support codes from the VoterView API.
      * @returns A promise that resolves to an array of `SchoolSupportCode` objects.

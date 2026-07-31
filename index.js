@@ -217,6 +217,16 @@ export class VoterViewApi {
         return frenchRightsCodes;
     }
     /**
+     * Retrieves the description of a gender based on the provided gender code.
+     * @param genderCode - The gender code for which to retrieve the description.
+     * @returns A promise that resolves to the gender description, or `undefined` if the gender code is not found.
+     */
+    async getGenderDescription(genderCode) {
+        const genders = await this.getGenders();
+        const gender = genders.find((gender) => gender.GenderCode === genderCode);
+        return gender?.GenderDescription;
+    }
+    /**
      * Retrieves the list of genders from the VoterView API.
      * @returns A promise that resolves to an array of `Gender` objects.
      */
@@ -238,6 +248,16 @@ export class VoterViewApi {
                 Date.now() + secondsToMillis(this.cacheExpirySeconds);
         }
         return genders;
+    }
+    /**
+     * Retrieves the description of an occupancy status based on the provided occupancy status code.
+     * @param occupancyStatusCode - The occupancy status code for which to retrieve the description.
+     * @returns A promise that resolves to the occupancy status description, or `undefined` if the occupancy status code is not found.
+     */
+    async getOccupancyStatusDescription(occupancyStatusCode) {
+        const occupancyStatuses = await this.getOccupancyStatuses();
+        const occupancyStatus = occupancyStatuses.find((status) => status.OccupancyStatusCode === occupancyStatusCode);
+        return occupancyStatus?.OccupancyStatusDescription;
     }
     /**
      * Retrieves the list of occupancy statuses from the VoterView API.
@@ -263,6 +283,16 @@ export class VoterViewApi {
         return occupancyStatuses;
     }
     /**
+     * Retrieves the description of a residency status based on the provided residency status code.
+     * @param residencyStatusCode - The residency status code for which to retrieve the description.
+     * @returns A promise that resolves to the residency status description, or `undefined` if the residency status code is not found.
+     */
+    async getResidencyStatusDescription(residencyStatusCode) {
+        const residencyStatuses = await this.getResidencyStatuses();
+        const residencyStatus = residencyStatuses.find((status) => status.ResidencyStatusCode === residencyStatusCode);
+        return residencyStatus?.ResidencyStatusDescription;
+    }
+    /**
      * Retrieves the list of residency statuses from the VoterView API.
      * @returns A promise that resolves to an array of `ResidencyStatus` objects.
      */
@@ -286,6 +316,16 @@ export class VoterViewApi {
         return residencyStatuses;
     }
     /**
+     * Retrieves the description of a Roman Catholic religion based on the provided religion code.
+     * @param religionCode - The religion code for which to retrieve the description.
+     * @returns A promise that resolves to the religion description, or `undefined` if the religion code is not found.
+     */
+    async getRomanCatholicReligionCodeDescription(religionCode) {
+        const religionCodes = await this.getRomanCatholicReligionCodes();
+        const religionCodeObject = religionCodes.find((code) => code.ReligionCode === religionCode);
+        return religionCodeObject?.ReligionDescription;
+    }
+    /**
      * Retrieves the list of Roman Catholic religion codes from the VoterView API.
      * @returns A promise that resolves to an array of `ReligionCode` objects.
      */
@@ -307,6 +347,16 @@ export class VoterViewApi {
                 Date.now() + secondsToMillis(this.cacheExpirySeconds);
         }
         return religionCodes;
+    }
+    /**
+     * Retrieves the description of a school support code based on the provided school support code.
+     * @param schoolSupportCode - The school support code for which to retrieve the description.
+     * @returns A promise that resolves to the school support description, or `undefined` if the school support code is not found.
+     */
+    async getSchoolSupportCodeDescription(schoolSupportCode) {
+        const schoolSupportCodes = await this.getSchoolSupportCodes();
+        const schoolSupportCodeObject = schoolSupportCodes.find((code) => code.SchoolSupportCode === schoolSupportCode);
+        return schoolSupportCodeObject?.SchoolSupportDescription;
     }
     /**
      * Retrieves the list of school support codes from the VoterView API.
