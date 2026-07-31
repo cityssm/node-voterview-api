@@ -565,4 +565,4 @@ export class VoterViewApi {
         }
     }
 }
-export { parseMicrosoftJsonDate, streetNamesToStringArray } from './helpers.js';
+export { parseMicrosoftJsonDate, parseUnknownDate, streetNamesToStringArray } from './helpers.js';
