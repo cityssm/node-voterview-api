@@ -2,7 +2,7 @@ import {
   type VotersListRegistrationRequest,
   type VotersListUpdateRequest,
   preferEmailForContactMap
-} from './types.js'
+} from '../types.js'
 
 interface FormattedRegisterRequest {
   VoterID?: number

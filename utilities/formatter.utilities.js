@@ -1,4 +1,4 @@
-import { preferEmailForContactMap } from './types.js';
+import { preferEmailForContactMap } from '../types.js';
 export function formatRegisterRequest(request) {
     const formattedRequest = {
         VoterID: Object.hasOwn(request, 'VoterID')

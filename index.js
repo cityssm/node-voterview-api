@@ -4,7 +4,7 @@ import { rollNumberMunicipalities } from '@cityssm/mpac-tools';
 import { secondsInOneHour, secondsToMillis } from '@cityssm/to-millis';
 import Debug from 'debug';
 import { DEBUG_NAMESPACE } from './debug.config.js';
-import { formatRegisterRequest } from './utilities.js';
+import { formatRegisterRequest } from './utilities/formatter.utilities.js';
 const debug = Debug(`${DEBUG_NAMESPACE}:index`);
 export class VoterViewApi {
     get cacheExpirySeconds() {
@@ -515,4 +515,4 @@ export class VoterViewApi {
         }
     }
 }
-export { streetNamesToStringArray } from './helpers.js';
+export { parseMicrosoftJsonDate, streetNamesToStringArray } from './helpers.js';

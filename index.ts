@@ -24,7 +24,7 @@ import type {
   VotersListUpdateRequest,
   VotingLocation
 } from './types.js'
-import { formatRegisterRequest } from './utilities.js'
+import { formatRegisterRequest } from './utilities/formatter.utilities.js'
 
 const debug = Debug(`${DEBUG_NAMESPACE}:index`)
 
@@ -776,7 +776,7 @@ export class VoterViewApi {
   }
 }
 
-export { streetNamesToStringArray } from './helpers.js'
+export { parseMicrosoftJsonDate, streetNamesToStringArray } from './helpers.js'
 
 export type {
   CandidateList,

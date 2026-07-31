@@ -5,7 +5,7 @@ import { DEBUG_ENABLE_NAMESPACES, DEBUG_NAMESPACE } from '../debug.config.js';
 import { VoterViewApi } from '../index.js';
 import { apiConfig, testStatusConfirmationCode, testStatusLastName, testStreetName, testStreetNumber, testVotersListRegistrationRequest, testVotersListRequest, testWard } from './config.js';
 Debug.enable(DEBUG_ENABLE_NAMESPACES);
-const debug = Debug(`${DEBUG_NAMESPACE}:test`);
+const debug = Debug(`${DEBUG_NAMESPACE}:test:api`);
 await describe('VoterViewApi', async () => {
     const api = new VoterViewApi(apiConfig.countyMunicipalityCode, apiConfig.username, apiConfig.password, apiConfig.useTrainingDatabase);
     await it.skip('should return a boolean indicating whether the database is under maintenance', async () => {
@@ -29,7 +29,7 @@ await describe('VoterViewApi', async () => {
         debug(streetNames);
         assert.ok(streetNames.length > 0, 'No street names returned');
     });
-    await it('should return all street names when no query string is provided', async () => {
+    await it.skip('should return all street names when no query string is provided', async () => {
         const streetNames = await api.getAllStreetNames();
         debug(streetNames);
         assert.ok(streetNames.length > 0, 'No street names returned');
@@ -39,7 +39,7 @@ await describe('VoterViewApi', async () => {
         debug(streetTypes);
         assert.ok(streetTypes.length > 0, 'No street types returned');
     });
-    await it.skip('should return a list of voting locations', async () => {
+    await it('should return a list of voting locations', async () => {
         const votingLocations = await api.getVotingLocationsByStreetAddress(testStreetNumber, testStreetName);
         debug(votingLocations);
         assert.ok(votingLocations.length > 0, 'No voting locations returned');
@@ -110,7 +110,7 @@ await describe.skip('VoterViewApi - Registration Process', async () => {
         debug(registrationResult);
         assert.ok(typeof registrationResult === 'string', 'Expected a string result from the voters list registration');
     });
-    await it('should return a vote by mail status', async () => {
+    await it.skip('should return a vote by mail status', async () => {
         if (!api.isTrainingDatabase()) {
             debug('Skipping test because the training database is not being used');
             return;

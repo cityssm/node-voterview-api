@@ -3,7 +3,12 @@
  */
 export type RequestDateString = `${number}/${number}/${number}`
 
-type ResponseDateJsonString = `/Date(${number}${'+' | '-'}${number})/`
+/**
+ * A date string in the format "/Date(1666584000000-0400)/",
+ * where the number represents the epoch milliseconds and the optional offset represents the timezone.
+ * Can be parsed using the `parseMicrosoftJsonDate` function.
+ */
+type ResponseMicrosoftJsonDateString = `/Date(${number}${'+' | '-'}${number})/`
 
 /**
  * A date string in the format "MMM DD, YYYY", e.g. "Jan 1, 2020".
@@ -79,9 +84,15 @@ export interface VotingLocation {
   Address2: string
   City: string
   CustomFieldValueList: unknown[] | null
-  DateOpenLocal: ResponseDateJsonString
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  DateOpenLocal: ResponseMicrosoftJsonDateString
+
   DateOpenStringLocal: ResponseDateString
-  DateOpenUtc: ResponseDateJsonString
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  DateOpenUtc: ResponseMicrosoftJsonDateString
+
   DateStringRange: `${ResponseDateString} to ${ResponseDateString}` | null
 
   /** Distance from provided address to the voting location in kilometers */
@@ -155,7 +166,10 @@ export interface CandidateList {
       LastName: string
       LinkedIn: string | null
       MiddleName: string
-      NominationDate: ResponseDateJsonString
+
+      /** Can be parsed using the `parseMicrosoftJsonDate` function */
+      NominationDate: ResponseMicrosoftJsonDateString
+
       OfficialAgentPublicCampaignOfficePhone: string | null
       OfficialAgentReleaseConsent: 'Y' | 'N' | '\u0000'
       PartyColour: string | null
@@ -443,19 +457,29 @@ export interface VoteByMailStatus {
   IsFound: boolean
 
   Submitted: boolean
-  SubmittedDate: ResponseDateJsonString | null
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  SubmittedDate: ResponseMicrosoftJsonDateString | null
 
   Approved: boolean
-  ApprovedDate: ResponseDateJsonString | null
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  ApprovedDate: ResponseMicrosoftJsonDateString | null
 
   Declined: boolean
-  DeclinedDate: ResponseDateJsonString | null
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  DeclinedDate: ResponseMicrosoftJsonDateString | null
 
   Mailed: boolean
-  MailedDate: ResponseDateJsonString | null
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  MailedDate: ResponseMicrosoftJsonDateString | null
 
   Received: boolean
-  ReceivedDate: ResponseDateJsonString | null
+
+  /** Can be parsed using the `parseMicrosoftJsonDate` function */
+  ReceivedDate: ResponseMicrosoftJsonDateString | null
 
   RegistrationOnly: boolean
 }

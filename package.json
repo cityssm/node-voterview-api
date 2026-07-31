@@ -23,14 +23,16 @@
     "./types": "./types.js"
   },
   "files": [
+    "utilities",
     "debug.config.*",
     "helpers.*",
     "index.*",
-    "types.*",
-    "utilities.*"
+    "types.*"
   ],
   "scripts": {
-    "test": "node --test \"test/test.ts\""
+    "test": "node --test \"test/*.test.js\"",
+    "test:api": "node --test \"test/api.test.js\"",
+    "test:helpers": "node --test \"test/helpers.test.js\""
   },
   "dependencies": {
     "@cacheable/node-cache": "^3.1.1",

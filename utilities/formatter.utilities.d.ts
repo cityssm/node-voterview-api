@@ -1,4 +1,4 @@
-import { type VotersListRegistrationRequest, type VotersListUpdateRequest } from './types.js';
+import { type VotersListRegistrationRequest, type VotersListUpdateRequest } from '../types.js';
 interface FormattedRegisterRequest {
     VoterID?: number;
     PropertyID?: number;
