@@ -345,7 +345,7 @@ export class VoterViewApi {
   async getGenderDescription(genderCode: string): Promise<string | undefined> {
     const genders = await this.getGenders()
 
-    const gender = genders.find((gender) => gender.GenderCode === genderCode)
+    const gender = genders.find((code) => code.GenderCode === genderCode)
 
     return gender?.GenderDescription
   }
