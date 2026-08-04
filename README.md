@@ -14,7 +14,8 @@ advantage of the VoterView API. Going open source soon!
 - **Built-in caching** of rarely updated values.
 - **Documentation error fixes**. Less trial-and-error for you!
 - **Easier application debugging** with pre-request validation.
-- **Helper functions** to add features not part of the official API.
+- **Helper functions** to clean messy results and
+  add features not part of the official API.
 
 ## Installation
 

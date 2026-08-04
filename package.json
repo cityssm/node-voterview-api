@@ -23,9 +23,10 @@
     "./types": "./types.js"
   },
   "files": [
+    "helpers",
+    "processors",
     "utilities",
     "debug.config.*",
-    "helpers.*",
     "index.*",
     "types.*"
   ],
@@ -38,6 +39,7 @@
     "@cacheable/node-cache": "^3.1.1",
     "@cityssm/mpac-tools": "^0.3.0",
     "@cityssm/to-millis": "^1.0.1",
+    "@cityssm/utils-datetime": "^1.3.0",
     "debug": "^4.4.3"
   },
   "devDependencies": {

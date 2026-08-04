@@ -1,13 +1,4 @@
 /**
- * Converts an array of StreetName objects to an array of strings
- * containing the DisplayValue of each street name.
- * @param streetNames - An array of StreetName objects to be converted.
- * @returns An array of strings containing the DisplayValue of each street name.
- */
-export function streetNamesToStringArray(streetNames) {
-    return streetNames.map((streetName) => streetName.DisplayValue);
-}
-/**
  * Parses a Microsoft JSON date string into a JavaScript Date object.
  * Microsoft JSON date strings are in the format: /Date(1666584000000-0400)/
  * where the number represents the epoch milliseconds and the optional offset represents the timezone.
@@ -34,6 +25,8 @@ export function parseMicrosoftJsonDate(dateString) {
  * @returns A JavaScript Date object representing the parsed date, or undefined if the input is invalid.
  */
 export function parseUnknownDate(dateString) {
+    if (dateString === null)
+        return undefined;
     if (dateString.startsWith('/Date(')) {
         return parseMicrosoftJsonDate(dateString);
     }

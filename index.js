@@ -454,12 +454,12 @@ export class VoterViewApi {
         return streetTypes;
     }
     /**
-     * Retrieves the vote-by-mail status for a voter using their confirmation code and last name.
-     * @param confirmationCode - The confirmation code provided to the voter for vote-by-mail.
+     * Retrieves the voter application status for a voter using their confirmation code and last name.
+     * @param confirmationCode - The confirmation code provided to the voter for the application.
      * @param lastName - The last name of the voter.
-     * @returns A promise that resolves to the `VoteByMailStatus` object containing the voter's vote-by-mail status.
+     * @returns A promise that resolves to the `VoterApplicationStatus` object containing the voter's application status.
      */
-    async getVoteByMailStatus(confirmationCode, lastName) {
+    async getVoterApplicationStatus(confirmationCode, lastName) {
         return (await this.#sendRequest('status', 'get', {
             ConfirmationCode: confirmationCode,
             LastName: lastName
@@ -565,4 +565,6 @@ export class VoterViewApi {
         }
     }
 }
-export { parseMicrosoftJsonDate, parseUnknownDate, streetNamesToStringArray } from './helpers.js';
+export * from './helpers/date.helpers.js';
+export * from './processors/streetNames.processors.js';
+export * from './processors/voterApplicationStatus.processors.js';

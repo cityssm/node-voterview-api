@@ -364,7 +364,7 @@ export type VotersListUpdateRequest = VotersListBaseRegistrationRequest & {
     PickUpBallot?: boolean;
     PickUpBallotName?: string;
 };
-export interface VoteByMailStatus {
+export interface VoterApplicationStatus {
     IsFound: boolean;
     Submitted: boolean;
     /** Can be parsed using the `parseMicrosoftJsonDate` function */
@@ -382,5 +382,15 @@ export interface VoteByMailStatus {
     /** Can be parsed using the `parseMicrosoftJsonDate` function */
     ReceivedDate: ResponseMicrosoftJsonDateString | null;
     RegistrationOnly: boolean;
+    /** Undocumented */
+    ReadyForPickUp: boolean;
+    /** Undocumented - Can be parsed using the `parseMicrosoftJsonDate` function */
+    ReadyForPickUpDate: ResponseMicrosoftJsonDateString | null;
+    /** Undocumented */
+    IsPickUp: boolean | null;
+    /** Undocumented */
+    PickedUp: boolean;
+    /** Undocumented - Can be parsed using the `parseMicrosoftJsonDate` function */
+    PickedUpDate: ResponseMicrosoftJsonDateString | null;
 }
 export {};

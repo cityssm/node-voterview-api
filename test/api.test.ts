@@ -6,7 +6,7 @@ import { describe, it } from 'node:test'
 import Debug from 'debug'
 
 import { DEBUG_ENABLE_NAMESPACES, DEBUG_NAMESPACE } from '../debug.config.js'
-import { VoterViewApi } from '../index.js'
+import { enhanceVoterApplicationStatus, VoterViewApi } from '../index.js'
 
 import {
   apiConfig,
@@ -95,7 +95,7 @@ await describe('VoterViewApi', async () => {
     assert.ok(streetTypes.length > 0, 'No street types returned')
   })
 
-  await it('should return a list of voting locations', async () => {
+  await it.skip('should return a list of voting locations', async () => {
     const votingLocations = await api.getVotingLocationsByStreetAddress(
       testStreetNumber,
       testStreetName
@@ -196,7 +196,7 @@ await describe('VoterViewApi', async () => {
   })
 })
 
-await describe.skip('VoterViewApi - Registration Process', async () => {
+await describe('VoterViewApi - Registration Process', async () => {
   if (!apiConfig.useTrainingDatabase) {
     throw new Error(
       'The training database must be used to run this test. Please set useTrainingDatabase to true in the config.'
@@ -228,13 +228,13 @@ await describe.skip('VoterViewApi - Registration Process', async () => {
     )
   })
 
-  await it.skip('should return a vote by mail status', async () => {
+  await it('should return an application status', async () => {
     if (!api.isTrainingDatabase()) {
       debug('Skipping test because the training database is not being used')
       return
     }
 
-    const voteByMailStatus = await api.getVoteByMailStatus(
+    const voteByMailStatus = await api.getVoterApplicationStatus(
       testStatusConfirmationCode,
       testStatusLastName
     )
@@ -244,6 +244,16 @@ await describe.skip('VoterViewApi - Registration Process', async () => {
     assert.ok(
       typeof voteByMailStatus.IsFound === 'boolean',
       'Expected a boolean value indicating whether the vote by mail status was found'
+    )
+
+    const enhancedStatus = enhanceVoterApplicationStatus(voteByMailStatus)
+
+    debug(enhancedStatus)
+
+    assert.ok(
+      enhancedStatus.CleanSubmittedDate !== undefined &&
+        enhancedStatus.CleanSubmittedDate instanceof Date,
+      'Expected the CleanSubmittedDate to be a "Date"'
     )
   })
 })

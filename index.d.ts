@@ -1,4 +1,4 @@
-import type { CandidateList, FrenchRightsCode, Gender, GetVotersListRecordRequest, OccupancyStatus, ReligionCode, RequestDateString, ResidencyStatus, SchoolSupportCode, StreetAddress, StreetName, VoteByMailStatus, VotersListRecord, VotersListRegistrationRequest, VotersListUpdateRequest, VotingLocation } from './types.js';
+import type { CandidateList, FrenchRightsCode, Gender, GetVotersListRecordRequest, OccupancyStatus, ReligionCode, RequestDateString, ResidencyStatus, SchoolSupportCode, StreetAddress, StreetName, VoterApplicationStatus, VotersListRecord, VotersListRegistrationRequest, VotersListUpdateRequest, VotingLocation } from './types.js';
 export declare class VoterViewApi {
     #private;
     get cacheExpirySeconds(): number;
@@ -121,12 +121,12 @@ export declare class VoterViewApi {
      */
     getStreetTypes(queryString: string): Promise<string[]>;
     /**
-     * Retrieves the vote-by-mail status for a voter using their confirmation code and last name.
-     * @param confirmationCode - The confirmation code provided to the voter for vote-by-mail.
+     * Retrieves the voter application status for a voter using their confirmation code and last name.
+     * @param confirmationCode - The confirmation code provided to the voter for the application.
      * @param lastName - The last name of the voter.
-     * @returns A promise that resolves to the `VoteByMailStatus` object containing the voter's vote-by-mail status.
+     * @returns A promise that resolves to the `VoterApplicationStatus` object containing the voter's application status.
      */
-    getVoteByMailStatus(confirmationCode: string, lastName: string): Promise<VoteByMailStatus>;
+    getVoterApplicationStatus(confirmationCode: string, lastName: string): Promise<VoterApplicationStatus>;
     /**
      * Retrieves a voter's record from the VoterView API based on the provided request parameters.
      * @param request - The request object containing the necessary parameters to retrieve the voter's record.
@@ -161,5 +161,7 @@ export declare class VoterViewApi {
         ErrorDescription: string;
     }>;
 }
-export { parseMicrosoftJsonDate, parseUnknownDate, streetNamesToStringArray } from './helpers.js';
-export type { CandidateList, FrenchRightsCode, Gender, GetVotersListRecordRequest, OccupancyStatus, ReligionCode, RequestDateString, ResidencyStatus, SchoolSupportCode, StreetAddress, StreetName, VoteByMailStatus, VotersListBaseRegistrationRequest, VotersListRecord, VotersListRegistrationRequest, VotersListUpdateRequest, VotingLocation } from './types.js';
+export * from './helpers/date.helpers.js';
+export * from './processors/streetNames.processors.js';
+export * from './processors/voterApplicationStatus.processors.js';
+export type * from './types.js';

@@ -435,9 +435,10 @@ export interface VotersListBaseRegistrationRequest {
   NotifyWhenProcessed?: boolean
 }
 
-export type VotersListRegistrationRequest = VotersListBaseRegistrationRequest & {
-  AbsenteeVoteType?: '0'
-}
+export type VotersListRegistrationRequest =
+  VotersListBaseRegistrationRequest & {
+    AbsenteeVoteType?: '0'
+  }
 
 export type VotersListUpdateRequest = VotersListBaseRegistrationRequest & {
   VoterID: number | string
@@ -458,7 +459,7 @@ export type VotersListUpdateRequest = VotersListBaseRegistrationRequest & {
   PickUpBallotName?: string
 }
 
-export interface VoteByMailStatus {
+export interface VoterApplicationStatus {
   IsFound: boolean
 
   Submitted: boolean
@@ -487,4 +488,19 @@ export interface VoteByMailStatus {
   ReceivedDate: ResponseMicrosoftJsonDateString | null
 
   RegistrationOnly: boolean
+
+  /** Undocumented */
+  ReadyForPickUp: boolean
+
+  /** Undocumented - Can be parsed using the `parseMicrosoftJsonDate` function */
+  ReadyForPickUpDate: ResponseMicrosoftJsonDateString | null
+
+  /** Undocumented */
+  IsPickUp: boolean | null
+
+  /** Undocumented */
+  PickedUp: boolean
+
+  /** Undocumented - Can be parsed using the `parseMicrosoftJsonDate` function */
+  PickedUpDate: ResponseMicrosoftJsonDateString | null
 }

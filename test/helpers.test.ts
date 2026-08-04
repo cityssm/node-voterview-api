@@ -4,7 +4,7 @@ import { describe, it } from 'node:test'
 import Debug from 'debug'
 
 import { DEBUG_ENABLE_NAMESPACES, DEBUG_NAMESPACE } from '../debug.config.js'
-import { parseMicrosoftJsonDate, parseUnknownDate } from '../helpers.js'
+import { parseMicrosoftJsonDate, parseUnknownDate } from '../index.js'
 
 Debug.enable(DEBUG_ENABLE_NAMESPACES)
 

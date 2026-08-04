@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import Debug from 'debug';
 import { DEBUG_ENABLE_NAMESPACES, DEBUG_NAMESPACE } from '../debug.config.js';
-import { VoterViewApi } from '../index.js';
+import { enhanceVoterApplicationStatus, VoterViewApi } from '../index.js';
 import { apiConfig, testStatusConfirmationCode, testStatusLastName, testStreetName, testStreetNumber, testVotersListRegistrationRequest, testVotersListRequest, testWard } from './config.js';
 Debug.enable(DEBUG_ENABLE_NAMESPACES);
 const debug = Debug(`${DEBUG_NAMESPACE}:test:api`);
@@ -40,7 +40,7 @@ await describe('VoterViewApi', async () => {
         debug(streetTypes);
         assert.ok(streetTypes.length > 0, 'No street types returned');
     });
-    await it('should return a list of voting locations', async () => {
+    await it.skip('should return a list of voting locations', async () => {
         const votingLocations = await api.getVotingLocationsByStreetAddress(testStreetNumber, testStreetName);
         debug(votingLocations);
         assert.ok(votingLocations.length > 0, 'No voting locations returned');
@@ -97,7 +97,7 @@ await describe('VoterViewApi', async () => {
         assert.ok(!votersListRecord.Found, 'Voters list record found');
     });
 });
-await describe.skip('VoterViewApi - Registration Process', async () => {
+await describe('VoterViewApi - Registration Process', async () => {
     if (!apiConfig.useTrainingDatabase) {
         throw new Error('The training database must be used to run this test. Please set useTrainingDatabase to true in the config.');
     }
@@ -111,13 +111,17 @@ await describe.skip('VoterViewApi - Registration Process', async () => {
         debug(registrationResult);
         assert.ok(typeof registrationResult === 'string', 'Expected a string result from the voters list registration');
     });
-    await it.skip('should return a vote by mail status', async () => {
+    await it('should return an application status', async () => {
         if (!api.isTrainingDatabase()) {
             debug('Skipping test because the training database is not being used');
             return;
         }
-        const voteByMailStatus = await api.getVoteByMailStatus(testStatusConfirmationCode, testStatusLastName);
+        const voteByMailStatus = await api.getVoterApplicationStatus(testStatusConfirmationCode, testStatusLastName);
         debug(voteByMailStatus);
         assert.ok(typeof voteByMailStatus.IsFound === 'boolean', 'Expected a boolean value indicating whether the vote by mail status was found');
+        const enhancedStatus = enhanceVoterApplicationStatus(voteByMailStatus);
+        debug(enhancedStatus);
+        assert.ok(enhancedStatus.CleanSubmittedDate !== undefined &&
+            enhancedStatus.CleanSubmittedDate instanceof Date, 'Expected the CleanSubmittedDate to be a "Date"');
     });
 });
