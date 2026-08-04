@@ -1,6 +1,6 @@
 {
   "name": "@cityssm/voterview-api",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "An unofficial wrapper around the VoterView Online Voter Services REST API",
   "keywords": [
     "voterview"
