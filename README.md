@@ -5,9 +5,6 @@
 
 **An unofficial wrapper around DataFix's [VoterView](https://datafix.com/services/voterview/) Online Voter Services REST API.**
 
-💡 Watch for a refreshed "Voter Services" portal taking full
-advantage of the VoterView API. Going open source soon!
-
 ## API Features
 
 - **Well typed** to get started quickly.
@@ -40,6 +37,10 @@ const streetAddresses = await getStreetAddresses('99 FO')
 ```
 
 ## Related Projects
+
+[**Voter Services Online**](https://github.com/cityssm/voter-services-online)<br />
+An online portal to assist voters with navigating municipal elections, using the
+VoterView API.
 
 [**Civic Address Format**](https://www.npmjs.com/package/@cityssm/civic-address-format)<br />
 Formats a civic address from its pieces using Canada Post guidelines.
