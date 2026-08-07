@@ -39,12 +39,12 @@
     "@cacheable/node-cache": "^3.1.1",
     "@cityssm/mpac-tools": "^0.3.0",
     "@cityssm/to-millis": "^1.0.1",
-    "@cityssm/utils-datetime": "^1.3.0",
+    "@cityssm/utils-datetime": "^1.4.0",
     "debug": "^4.4.3"
   },
   "devDependencies": {
     "@types/debug": "^4.1.13",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.2.0",
     "eslint-config-cityssm": "^43.0.0",
     "prettier-config-cityssm": "^2.1.3"
   }
