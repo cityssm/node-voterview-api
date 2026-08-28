@@ -153,7 +153,6 @@ export declare class VoterViewApi {
     /**
      * Submits a voters list update request to the VoterView API.
      * @param request - The voters list registration or update request object containing the necessary information.
-     * @throws {Error} Will throw an error if validation fails
      * @returns A promise that resolves to the response from the VoterView API.
      */
     submitVotersListUpdate(request: VotersListRegistrationRequest | VotersListUpdateRequest): Promise<string | {

@@ -54,5 +54,12 @@ interface FormattedRegisterRequest {
     PickUpBallot?: boolean;
     PickUpBallotName?: string;
 }
+/**
+ * Formats a voters list registration or update request into a format suitable
+ * for submission to the VoterView API.
+ * @internal
+ * @param request - The voters list registration or update request object.
+ * @returns The formatted request object suitable for submission to the VoterView API.
+ */
 export declare function formatRegisterRequest(request: VotersListRegistrationRequest | VotersListUpdateRequest): FormattedRegisterRequest;
 export {};

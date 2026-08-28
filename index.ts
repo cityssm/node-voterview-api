@@ -182,7 +182,6 @@ export class VoterViewApi {
     const streetNameQueryReturnMax = 20
     const maxPrefixDepth = 5
 
-    // eslint-disable-next-line no-secrets/no-secrets
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     const allStreetNames: StreetName[] = []
@@ -790,8 +789,8 @@ export class VoterViewApi {
   /**
    * Submits a voters list update request to the VoterView API.
    * @param request - The voters list registration or update request object containing the necessary information.
-   * @throws {Error} Will throw an error if validation fails
    * @returns A promise that resolves to the response from the VoterView API.
+   * @throws {VoterViewApiError} Will throw an error if validation fails or if the request to the VoterView API fails.
    */
   async submitVotersListUpdate(
     request: VotersListRegistrationRequest | VotersListUpdateRequest
@@ -815,7 +814,10 @@ export class VoterViewApi {
       )) as string
     } catch (error) {
       debug('Failed to register voter:', error)
-      throw error
+      throw new VoterViewApiError(
+        `Failed to register voter: ${error instanceof Error ? error.message : String(error)}`,
+        error
+      )
     }
   }
 
@@ -854,6 +856,16 @@ export class VoterViewApi {
         body: JSON.stringify(parameters)
       }).then(async (response) => (await response.json()) as unknown)
     }
+  }
+}
+
+class VoterViewApiError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: unknown
+  ) {
+    super(message, { cause })
+    this.name = 'VoterViewApiError'
   }
 }
 

@@ -526,7 +526,6 @@ export class VoterViewApi {
     /**
      * Submits a voters list update request to the VoterView API.
      * @param request - The voters list registration or update request object containing the necessary information.
-     * @throws {Error} Will throw an error if validation fails
      * @returns A promise that resolves to the response from the VoterView API.
      */
     async submitVotersListUpdate(request) {
@@ -536,7 +535,7 @@ export class VoterViewApi {
         }
         catch (error) {
             debug('Failed to register voter:', error);
-            throw error;
+            throw new VoterViewApiError(`Failed to register voter: ${error instanceof Error ? error.message : String(error)}`, error);
         }
     }
     async #sendRequest(endpoint, method, parameters = {}) {
@@ -563,6 +562,14 @@ export class VoterViewApi {
                 body: JSON.stringify(parameters)
             }).then(async (response) => (await response.json()));
         }
+    }
+}
+class VoterViewApiError extends Error {
+    cause;
+    constructor(message, cause) {
+        super(message, { cause });
+        this.cause = cause;
+        this.name = 'VoterViewApiError';
     }
 }
 export * from './helpers/date.helpers.js';

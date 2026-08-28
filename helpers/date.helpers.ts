@@ -2,7 +2,7 @@
  * Parses a Microsoft JSON date string into a JavaScript Date object.
  * Microsoft JSON date strings are in the format: /Date(1666584000000-0400)/
  * where the number represents the epoch milliseconds and the optional offset represents the timezone.
- * @param dateString The Microsoft JSON date string to parse.
+ * @param dateString - The Microsoft JSON date string to parse.
  * @returns A JavaScript Date object representing the parsed date, or undefined if the input is invalid.
  */
 export function parseMicrosoftJsonDate(dateString: string): Date | undefined {
@@ -25,7 +25,7 @@ export function parseMicrosoftJsonDate(dateString: string): Date | undefined {
  * - Long date format: `Oct 08, 2022`
  *
  * If the input string is not a valid date format, the function returns undefined.
- * @param dateString The date string to parse.
+ * @param dateString - The date string to parse.
  * @returns A JavaScript Date object representing the parsed date, or undefined if the input is invalid.
  */
 export function parseUnknownDate(dateString: string | null): Date | undefined {
